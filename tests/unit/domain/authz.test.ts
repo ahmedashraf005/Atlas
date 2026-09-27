@@ -87,6 +87,7 @@ const staticRoles: Record<(typeof SIMPLE_ACTIONS)[number], ActorRole[]> = {
   "sandbox.advanceClock": ["seller", "buyer", "company_admin", "operator"],
   "sandbox.toggleAutopilot": ["seller", "buyer", "company_admin", "operator"],
   "sandbox.switchPersona": ["seller", "buyer", "company_admin", "operator"],
+  "sandbox.setRofrMode": ["seller", "buyer", "company_admin", "operator"],
 };
 describe("complete authorisation matrix", () => {
   const actions = [...SIMPLE_ACTIONS, ...Object.keys(eventRoles)] as Action[];

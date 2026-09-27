@@ -8,9 +8,11 @@ export default defineConfig({
     setupFiles: ["tests/setup/vitest.setup.ts"],
     coverage: {
       provider: "v8",
-      include: ["src/domain/**", "src/lib/**"],
+      include: ["src/domain/**", "src/lib/**", "src/server/**"],
       reporter: ["text", "json", "json-summary", "html"],
-      thresholds: { lines: 95, branches: 90, functions: 95, statements: 95 },
+      thresholds: {
+        "src/{domain,lib}/**": { lines: 95, branches: 90, functions: 95, statements: 95 },
+      },
     },
   },
   resolve: {

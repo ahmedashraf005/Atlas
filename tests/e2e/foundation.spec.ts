@@ -98,7 +98,7 @@ test("unknown route renders the standalone 404", async ({ page }) => {
   await expect(page.getByRole("navigation", { name: "Main", exact: true })).toHaveCount(0);
 });
 
-test("mobile sheet navigation and disabled demo menu work without overflow", async ({ page }) => {
+test("mobile sheet navigation and demo controls work without overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/discover");
   await expect(
@@ -113,8 +113,9 @@ test("mobile sheet navigation and disabled demo menu work without overflow", asy
   await expect(page).toHaveURL("/bids");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.getByRole("button", { name: "Demo controls" }).click();
-  await expect(page.getByRole("menuitem", { name: "+1 day" })).toHaveAttribute("data-disabled", "");
-  await expect(page.getByRole("menuitem", { name: "Buyer A" })).toHaveAttribute(
+  await expect(page.getByRole("menuitem", { name: "+1 day", exact: true })).toBeEnabled();
+  await expect(page.getByRole("menuitem", { name: "Buyer A" })).toBeEnabled();
+  await expect(page.getByRole("menuitem", { name: "Simulate competing bid" })).toHaveAttribute(
     "data-disabled",
     "",
   );
@@ -133,14 +134,12 @@ test("first Tab reaches skip link and activation focuses main", async ({ page })
   await expect(page.locator("#main")).toBeFocused();
 });
 
-test("disabled day control explains availability on hover and focus", async ({ page }) => {
+test("day controls are enabled and keyboard focusable", async ({ page }) => {
   await page.goto("/discover");
-  const wrapper = page.getByRole("button", { name: "+1 day", exact: true }).locator("..");
-  await wrapper.hover();
-  await expect(page.getByRole("tooltip", { name: "Available from segment 2" })).toBeVisible();
-  await page.mouse.move(0, 0);
-  await wrapper.focus();
-  await expect(page.getByRole("tooltip", { name: "Available from segment 2" })).toBeVisible();
+  const control = page.getByRole("button", { name: "+1 day", exact: true });
+  await expect(control).toBeEnabled();
+  await control.focus();
+  await expect(control).toBeFocused();
 });
 
 test("confirmation starts on cancel; overlays and form controls are usable", async ({ page }) => {

@@ -52,3 +52,25 @@ it("invalid flag is rejected without disclosing the value", async () => {
   const { getFlags } = await import("@/env");
   expect(getFlags).toThrow(/^Invalid environment: ATLAS_DEV_UI$/);
 });
+
+it.each([
+  "pglite://memory",
+  "pglite://.pglite/dev",
+  "postgresql://user:password@example.test/atlas",
+])("accepts database driver URL %s", async (url) => {
+  vi.stubEnv("DATABASE_URL", url);
+  vi.stubEnv("SESSION_SECRET", "x".repeat(32));
+  const { getServerEnv } = await import("@/env");
+  expect(getServerEnv().DATABASE_URL).toBe(url);
+});
+it.each([
+  "https://example.test/db",
+  "pglite://",
+  "postgres://",
+  "invalid-secret",
+])("rejects unsupported or empty database URLs without leaking them", async (url) => {
+  vi.stubEnv("DATABASE_URL", url);
+  vi.stubEnv("SESSION_SECRET", "x".repeat(32));
+  const { getServerEnv } = await import("@/env");
+  expect(getServerEnv).toThrow("Invalid environment: DATABASE_URL");
+});

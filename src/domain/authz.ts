@@ -52,6 +52,7 @@ export const SIMPLE_ACTIONS = [
   "sandbox.advanceClock",
   "sandbox.toggleAutopilot",
   "sandbox.switchPersona",
+  "sandbox.setRofrMode",
 ] as const;
 type MachineAction = {
   [K in keyof typeof MACHINES]: `${K}.${(typeof MACHINES)[K]["events"][number]}`;
@@ -143,6 +144,7 @@ export function can(actor: Actor, action: Action, r: Resource): Decision {
     case "sandbox.advanceClock":
     case "sandbox.toggleAutopilot":
     case "sandbox.switchPersona":
+    case "sandbox.setRofrMode":
       return permit(r.kind === "sandbox", r);
     default:
       return denied(r.kind);

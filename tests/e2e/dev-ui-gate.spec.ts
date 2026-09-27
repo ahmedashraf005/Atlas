@@ -10,7 +10,12 @@ test("production showcase gate is evaluated at runtime and returns HTTP 404", as
     process.execPath,
     ["node_modules/next/dist/bin/next", "start", "-p", "3101"],
     {
-      env: { ...process.env, ATLAS_DEV_UI: "0" },
+      env: {
+        ...process.env,
+        ATLAS_DEV_UI: "0",
+        DATABASE_URL: "pglite://.pglite/e2e-gate",
+        SESSION_SECRET: "atlas-e2e-only-session-secret-32-characters",
+      },
       stdio: ["ignore", "pipe", "pipe"],
     },
   );

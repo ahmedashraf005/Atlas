@@ -12,11 +12,14 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate && git diff --exit-code drizzle/
       - run: pnpm check
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
         env:
           CI: "true"
+          DATABASE_URL: pglite://.pglite/e2e
+          SESSION_SECRET: atlas-e2e-only-session-secret-32-characters
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

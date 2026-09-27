@@ -1,7 +1,18 @@
 import "server-only";
 import { z } from "zod";
 
-const serverSchema = z.object({ DATABASE_URL: z.url(), SESSION_SECRET: z.string().min(32) });
+const serverSchema = z.object({
+  DATABASE_URL: z.string().refine((value) => {
+    if (/^pglite:\/\/[^\s]+$/.test(value)) return true;
+    if (!/^postgres(?:ql)?:\/\//.test(value) || /\s/.test(value)) return false;
+    try {
+      return Boolean(new URL(value).hostname);
+    } catch {
+      return false;
+    }
+  }),
+  SESSION_SECRET: z.string().min(32),
+});
 const flagsSchema = z.object({ ATLAS_DEV_UI: z.enum(["0", "1"]).default("0") });
 let serverEnv: z.infer<typeof serverSchema> | undefined;
 let flags: { devUi: boolean } | undefined;

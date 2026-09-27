@@ -1,10 +1,19 @@
 "use client";
-
-import { FastForward, RotateCcw, Settings2 } from "lucide-react";
-import type { ReactNode } from "react";
+import { Settings2 } from "lucide-react";
+import { useActionState, useEffect, useTransition } from "react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/atlas/confirm-dialog";
+import {
+  advanceClock,
+  resetSandbox,
+  setRofrMode,
+  switchPersona,
+  toggleAutopilot,
+} from "@/components/shell/demo-actions";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -18,91 +27,164 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { DEMO_PERSONA_OPTIONS } from "@/config/demo-viewer";
-
-function DisabledHint({ children, text }: { children: ReactNode; text: string }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        {/* biome-ignore lint/a11y/noNoninteractiveTabindex: the specified wrapper exposes a disabled control's tooltip to keyboard users. */}
-        <span tabIndex={0} className="inline-flex shrink-0 rounded-sm">
-          {children}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>{text}</TooltipContent>
-    </Tooltip>
+import { PERSONAS, type PersonaKey } from "@/config/personas";
+export function DemoControls({
+  persona,
+  autopilot,
+  rofrMode,
+}: {
+  persona: PersonaKey;
+  autopilot: boolean;
+  rofrMode: "waive" | "exercise";
+}) {
+  const [pending, start] = useTransition();
+  const [personaState, selectPersona, selectPending] = useActionState(switchPersona, {
+    status: "idle",
+  });
+  useEffect(() => {
+    if (personaState.status === "error") toast.error(personaState.error.message);
+  }, [personaState]);
+  const run = (task: () => Promise<{ status: string; error?: { message: string } }>) =>
+    start(async () => {
+      const result = await task();
+      if (result.status === "error")
+        toast.error(result.error?.message ?? "Something went wrong. Try again.");
+    });
+  const changePersona = (value: PersonaKey) => start(() => selectPersona({ persona: value }));
+  const busy = pending || selectPending;
+  const resetTrigger = (
+    <Button variant="secondary" size="sm" disabled={busy}>
+      Reset
+    </Button>
   );
-}
-
-const actions = [
-  // TODO(segment-2): advance sandbox clock and reset sandbox
-  { label: "+1 day", icon: FastForward, segment: 2 },
-  { label: "+30 days", segment: 2 },
-  // TODO(segment-5): simulate competing bid
-  { label: "Simulate competing bid", segment: 5 },
-  // TODO(segment-2): reset sandbox
-  { label: "Reset", icon: RotateCcw, segment: 2 },
-] as const;
-
-export function DemoControls() {
+  const reset = (
+    <ConfirmDialog
+      trigger={resetTrigger}
+      title="Reset the demo?"
+      description="This restores every company, listing and trade to its starting point. Your changes in this sandbox are lost."
+      confirmLabel="Reset demo"
+      tone="danger"
+      onConfirm={() => run(() => resetSandbox({ status: "idle" }, {}))}
+    />
+  );
+  const more = (mobile: boolean) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size={mobile ? "icon-sm" : "sm"}
+          className={mobile ? "lg:hidden" : "hidden lg:inline-flex"}
+          aria-label={mobile ? "Demo controls" : "More demo controls"}
+        >
+          {mobile ? <Settings2 strokeWidth={1.5} aria-hidden /> : "More"}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="max-w-[calc(100vw-2rem)]">
+        {mobile && (
+          <>
+            <DropdownMenuLabel>View as</DropdownMenuLabel>
+            {PERSONAS.map((p) => (
+              <DropdownMenuItem key={p.key} disabled={busy} onSelect={() => changePersona(p.key)}>
+                {p.label}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            {([24, 168, 720] as const).map((hours) => (
+              <DropdownMenuItem
+                key={hours}
+                disabled={busy}
+                onSelect={() => run(() => advanceClock({ status: "idle" }, { hours }))}
+              >
+                +{hours / 24} {hours === 24 ? "day" : "days"}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuItem
+              disabled={busy}
+              onSelect={() => run(() => toggleAutopilot({ status: "idle" }, {}))}
+            >
+              Auto-pilot {autopilot ? "on" : "off"}
+            </DropdownMenuItem>
+          </>
+        )}
+        {mobile && (
+          <ConfirmDialog
+            trigger={
+              <DropdownMenuItem disabled={busy} onSelect={(event) => event.preventDefault()}>
+                Reset
+              </DropdownMenuItem>
+            }
+            title="Reset the demo?"
+            description="This restores every company, listing and trade to its starting point. Your changes in this sandbox are lost."
+            confirmLabel="Reset demo"
+            tone="danger"
+            onConfirm={() => run(() => resetSandbox({ status: "idle" }, {}))}
+          />
+        )}
+        <DropdownMenuCheckboxItem
+          checked={rofrMode === "exercise"}
+          disabled={busy}
+          onCheckedChange={(value) =>
+            run(() => setRofrMode({ status: "idle" }, { mode: value ? "exercise" : "waive" }))
+          }
+        >
+          Company exercises ROFR
+        </DropdownMenuCheckboxItem>
+        {/* TODO(segment-5): simulate competing bid */}
+        <DropdownMenuItem disabled>Simulate competing bid · Segment 5</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
   return (
-    <TooltipProvider>
+    <div className="flex min-w-0 items-center gap-2">
       <div className="hidden min-w-0 items-center gap-2 overflow-x-auto py-1 lg:flex">
-        {/* TODO(segment-2): enable persona switching */}
-        <label htmlFor="persona" className="type-label text-ink-muted">
+        <label htmlFor="persona" className="shrink-0 whitespace-nowrap type-label text-ink-muted">
           View as
         </label>
-        <DisabledHint text="Persona switching arrives in segment 2">
-          <Select disabled value={DEMO_PERSONA_OPTIONS[0]}>
-            <SelectTrigger id="persona" className="h-8 w-64">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DEMO_PERSONA_OPTIONS.map((persona) => (
-                <SelectItem key={persona} value={persona}>
-                  {persona}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </DisabledHint>
-        <Separator
-          orientation="vertical"
-          className="h-6 shrink-0 data-[orientation=vertical]:h-6"
-        />
-        {actions.map((action) => (
-          <DisabledHint key={action.label} text={`Available from segment ${action.segment}`}>
-            <Button variant="secondary" size="sm" disabled>
-              {"icon" in action && <action.icon strokeWidth={1.5} aria-hidden />}
-              {action.label}
-            </Button>
-          </DisabledHint>
+        <Select
+          value={persona}
+          disabled={busy}
+          onValueChange={(value) => changePersona(value as PersonaKey)}
+        >
+          <SelectTrigger id="persona" className="h-8 w-64 shrink-0 whitespace-nowrap">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PERSONAS.map((p) => (
+              <SelectItem key={p.key} value={p.key}>
+                {p.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {([24, 168, 720] as const).map((hours) => (
+          <Button
+            key={hours}
+            className="shrink-0"
+            variant="secondary"
+            size="sm"
+            disabled={busy}
+            onClick={() => run(() => advanceClock({ status: "idle" }, { hours }))}
+          >
+            +{hours / 24} {hours === 24 ? "day" : "days"}
+          </Button>
         ))}
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label="Demo controls">
-            <Settings2 strokeWidth={1.5} aria-hidden />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="max-w-[calc(100vw-2rem)]">
-          <DropdownMenuLabel>View as · available from segment 2</DropdownMenuLabel>
-          {DEMO_PERSONA_OPTIONS.map((persona) => (
-            <DropdownMenuItem key={persona} disabled>
-              {persona}
-            </DropdownMenuItem>
-          ))}
-          <DropdownMenuSeparator />
-          {actions.map((action) => (
-            <DropdownMenuItem disabled key={action.label}>
-              {action.label}
-              <span className="ml-auto type-label">Segment {action.segment}</span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </TooltipProvider>
+      {more(false)}
+      {more(true)}
+      <span className="hidden lg:inline-flex">{reset}</span>
+      <Button
+        className="hidden md:inline-flex"
+        variant="ghost"
+        size="sm"
+        aria-pressed={autopilot}
+        disabled={busy}
+        onClick={() => run(() => toggleAutopilot({ status: "idle" }, {}))}
+      >
+        <span
+          className={`size-2 shrink-0 rounded-full ${autopilot ? "bg-success" : "bg-line-strong"}`}
+        />
+        Auto-pilot {autopilot ? "on" : "off"}
+      </Button>
+    </div>
   );
 }

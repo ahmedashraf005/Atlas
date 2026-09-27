@@ -68,6 +68,11 @@ export function checkSource(file: string, source: string): Violation[] {
     if (file !== "src/lib/clock.ts")
       scan("current time outside clock", /\bDate\s*\.\s*now\s*\(|\bnew\s+Date\s*\(\s*\)/g);
   }
+  if (inSrc) scan("audit immutability", /\b(?:update|delete)\s*\(\s*auditLog\b/g);
+  if (file.startsWith("src/server/") && !/^import ["']server-only["'];/.test(source))
+    add("server-only guard", 0);
+  if (file === "src/proxy.ts")
+    scan("proxy database dependency", /(?:@\/server\/db|\.\/server\/db)/g);
   if (inSrc) scan("unsafe HTML", /dangerouslySetInnerHTML/g);
   if (file.startsWith("src/domain/")) {
     scan("domain numeric parsing", /\b(?:Number|parseFloat|parseInt)\s*\(/g);
@@ -89,7 +94,18 @@ it("source obeys all architecture guards", () => {
 });
 
 describe("guard self-tests", () => {
+  it("requires the server-only guard at the beginning of every server module", () => {
+    expect(checkSource("src/server/x.ts", "export const x = 1;")[0]?.rule).toBe(
+      "server-only guard",
+    );
+    expect(checkSource("src/server/x.ts", 'import "server-only";\nexport const x = 1;')).toEqual(
+      [],
+    );
+  });
   it.each([
+    ["audit immutability", "src/server/x.ts", 'import "server-only"; db.update(auditLog);'],
+    ["audit immutability", "src/x.ts", "db.delete(auditLog);"],
+    ["proxy database dependency", "src/proxy.ts", 'import db from "@/server/db/client";'],
     ["colour literal", "src/components/bad.tsx", 'const x = <div style={{color: "#fff"}} />;'],
     [
       "default palette",

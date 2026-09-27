@@ -18,7 +18,8 @@
       "!next-env.d.ts",
       "!src/styles/tokens.css",
       "!!docs",
-      "!!prompts"
+      "!!prompts",
+      "!!drizzle"
     ]
   },
   "formatter": {
@@ -28,7 +29,11 @@
     "lineWidth": 100
   },
   "javascript": {
-    "formatter": { "quoteStyle": "double", "semicolons": "always", "trailingCommas": "all" }
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
   },
   "css": {
     "parser": {
@@ -48,7 +53,13 @@
   "overrides": [
     {
       "includes": ["src/components/ui/**"],
-      "linter": { "rules": { "suspicious": { "noArrayIndexKey": "off" } } }
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noArrayIndexKey": "off"
+          }
+        }
+      }
     }
   ],
   "assist": {
