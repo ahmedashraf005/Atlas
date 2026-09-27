@@ -1,0 +1,293 @@
+<!doctype html>
+<!--
+  Atlas — approved visual reference: buyer company page, light theme, 1440px wide.
+  Static export of the approved design canvas. Every colour here is an Atlas token value
+  (see docs/design/tokens.json): paper #f4ede0, surface #fffaf0, surface-sunken #ece2cf,
+  line #ded0b8, line-strong #94866f, ink #231c14, ink-muted #685b49, atlas-green #1f4a30,
+  atlas-green-soft #e2e8d2, brass #85602a, brass-soft #f4e5c8, info #2f4f84, warning #8c5500,
+  chart-band #dde4c6. In the app, use token utilities, never these literals.
+  All names and numbers are fictional demo data.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas – Company page (buyer) – reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:"IBM Plex Sans",system-ui,sans-serif}
+a{color:#1f4a30;text-decoration:none}a:hover{color:#15361f;text-decoration:underline}
+button,select,input{font-family:inherit}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #2d62c4;outline-offset:2px}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 1360px; display: flex; background: #f4ede0; color: #231c14; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; line-height: 22px; overflow: hidden">
+
+<nav aria-label="Main" style="width: 240px; flex-shrink: 0; box-sizing: border-box; background: #ece2cf; border-right: 1px solid #ded0b8; display: flex; flex-direction: column; padding: 20px 16px; gap: 24px">
+<div style="display: flex; align-items: center; gap: 8px; padding: 0 8px">
+<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="0" y="0" width="22" height="22" rx="4" fill="#1f4a30"></rect><line x1="5" y1="9.5" x2="17" y2="9.5" stroke="#fffaf0" stroke-width="1.5"></line><line x1="5" y1="13.5" x2="17" y2="13.5" stroke="#fffaf0" stroke-width="1.5"></line></svg>
+<span style="font-family: 'IBM Plex Serif', Georgia, serif; font-size: 22px; line-height: 28px; font-weight: 500">Atlas</span>
+</div>
+<div style="padding: 10px 12px; background: #fffaf0; border: 1px solid #ded0b8; border-radius: 6px">
+<div style="font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.02em; color: #685b49">Signed in as buyer</div>
+<div style="font-size: 13px; line-height: 20px; font-weight: 600">Investor #B-081</div>
+<div style="font-size: 12px; line-height: 16px; color: #685b49">Professional investor · KYC verified</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<a href="#" aria-current="page" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; background: #e2e8d2; color: #231c14; font-weight: 600">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1f4a30" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>Discover</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; color: #231c14">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>Watchlist &amp; mandates</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; color: #231c14">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l8.59-8.59a1 1 0 0 0 0-1.41Z"></path><circle cx="7" cy="7" r="1.5"></circle></svg>
+<span style="flex-grow: 1">My bids</span><span style="font-size: 12px; line-height: 16px; font-weight: 600; padding: 1px 7px; border-radius: 4px; background: #f9ebd0; color: #8c5500">1</span></a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; color: #231c14">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg>Trades</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; color: #231c14">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>Portfolio</a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; color: #231c14">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>Messages</a>
+</div>
+<div style="margin-top: auto; padding: 0 8px; font-size: 12px; line-height: 16px; color: #685b49">Demo sandbox · all companies and people are fictional</div>
+</nav>
+
+<div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0">
+
+<div style="height: 56px; flex-shrink: 0; box-sizing: border-box; display: flex; align-items: center; gap: 12px; padding: 0 32px; background: #ece2cf; border-bottom: 1px solid #ded0b8">
+<span style="font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.02em; padding: 2px 8px; border-radius: 4px; border: 1px solid #94866f; color: #685b49">DEMO</span>
+<label for="persona" style="font-size: 12px; line-height: 16px; font-weight: 500; color: #685b49">View as</label>
+<select id="persona" style="height: 32px; padding: 0 8px; border-radius: 4px; border: 1px solid #94866f; background: #fffaf0; color: #231c14; font-size: 13px">
+<option>Buyer A · Investor #B-081</option>
+<option>Buyer B · Investor #B-117</option>
+<option>Seller · Holder #S-214</option>
+<option>Company admin · Falaj Robotics</option>
+<option>Operator · Atlas compliance</option>
+</select>
+<div style="width: 1px; height: 24px; background: #ded0b8"></div>
+<button type="button" style="height: 32px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 6px; border: 1px solid #94866f; background: #fffaf0; color: #231c14; font-size: 13px; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg>+1 day</button>
+<button type="button" style="height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid #94866f; background: #fffaf0; color: #231c14; font-size: 13px; cursor: pointer">+30 days</button>
+<button type="button" style="height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid #94866f; background: #fffaf0; color: #231c14; font-size: 13px; cursor: pointer">Simulate competing bid</button>
+<button type="button" style="height: 32px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 6px; border: 1px solid #94866f; background: #fffaf0; color: #231c14; font-size: 13px; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>Reset</button>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 13px; line-height: 20px; color: #685b49">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 4px; background: #2d6a3c"></span>Auto-pilot on</span>
+<span style="display: flex; align-items: center; gap: 6px">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+<span style="font-variant-numeric: tabular-nums">Sandbox time 25 Sep 2026, 14:30 GST</span></span>
+</div>
+</div>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 24px">
+
+<div style="font-size: 13px; line-height: 20px; color: #685b49"><a href="#" style="color: #1f4a30">Discover</a> / Falaj Robotics</div>
+
+<div style="display: flex; align-items: flex-end; gap: 24px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-family: 'IBM Plex Serif', Georgia, serif; font-size: 28px; line-height: 34px; font-weight: 500">Falaj Robotics</h1>
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+<span style="color: #685b49">Warehouse automation · Series B · Incorporated in ADGM</span>
+<span style="display: flex; align-items: center; gap: 4px; font-size: 12px; line-height: 16px; font-weight: 500; padding: 3px 8px; border-radius: 4px; background: #f4e5c8; color: #85602a">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#85602a" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m9 12 2 2 4-4"></path></svg>Company onboarded and verified</span>
+<span style="font-size: 12px; line-height: 16px; font-weight: 500; padding: 3px 8px; border-radius: 4px; background: #e7eaf1; color: #2f4f84">2 open listings</span>
+<span style="font-size: 12px; line-height: 16px; font-weight: 500; padding: 3px 8px; border-radius: 4px; background: #e2e8d2; color: #231c14">Matches your mandate "Late-stage UAE tech"</span>
+</div>
+</div>
+<button type="button" style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 6px; border: 1px solid #94866f; background: #fffaf0; color: #231c14; font-size: 14px; font-weight: 500; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>Watching</button>
+<button type="button" style="height: 40px; padding: 0 18px; border-radius: 6px; border: 1px solid #1f4a30; background: #1f4a30; color: #fffaf0; font-size: 14px; font-weight: 600; cursor: pointer">Place a bid</button>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+<div style="background: #fffaf0; border: 1px solid #ded0b8; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.02em; color: #685b49">Last round price</div>
+<div style="font-size: 28px; line-height: 32px; font-weight: 600; font-variant-numeric: tabular-nums">AED 42.00</div>
+<div style="font-size: 13px; line-height: 20px; color: #685b49">Series B preferred · Mar 2026</div>
+</div>
+<div style="background: #fffaf0; border: 1px solid #ded0b8; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 4px; padding: 6px 16px; background: #f4e5c8; color: #85602a; font-size: 12px; line-height: 16px; font-weight: 500">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#85602a" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m9 12 2 2 4-4"></path></svg>Fair-value band · ordinary shares</div>
+<div style="padding: 10px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 28px; line-height: 32px; font-weight: 600; font-variant-numeric: tabular-nums">AED 33.10–37.40</div>
+<div style="font-size: 13px; line-height: 20px; color: #685b49">From 6 trades in the last 180 days</div>
+</div>
+</div>
+<div style="background: #fffaf0; border: 1px solid #ded0b8; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.02em; color: #685b49">Last Atlas trade</div>
+<div style="font-size: 28px; line-height: 32px; font-weight: 600; font-variant-numeric: tabular-nums">AED 35.80</div>
+<div style="font-size: 13px; line-height: 20px; color: #685b49; font-variant-numeric: tabular-nums">4,000 ordinary shares · 12 Sep 2026</div>
+</div>
+<div style="background: #fffaf0; border: 1px solid #ded0b8; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.02em; color: #685b49">Transfer terms</div>
+<div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 20px"><span style="color: #685b49">Right of first refusal</span><span style="font-weight: 500; font-variant-numeric: tabular-nums">30 days</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 20px"><span style="color: #685b49">Minimum lot</span><span style="font-weight: 500; font-variant-numeric: tabular-nums">1,000 sh</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 20px"><span style="color: #685b49">Buyer joinder</span><span style="font-weight: 500">Required</span></div>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px">
+<section style="background: #fffaf0; border: 1px solid #ded0b8; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<h2 style="margin: 0; font-family: 'IBM Plex Serif', Georgia, serif; font-size: 20px; line-height: 28px; font-weight: 500">Price history</h2>
+<span style="font-size: 13px; line-height: 20px; color: #685b49">Ordinary shares · AED per share · Apr–Sep 2026</span>
+</div>
+<svg width="700" height="232" viewBox="0 0 700 232" role="img" aria-label="Atlas trades from April to September 2026 against the fair-value band of AED 33.10 to 37.40 and the last round price of AED 42.00">
+<line x1="48" y1="42.3" x2="684" y2="42.3" stroke="#ded0b8" stroke-width="1"></line>
+<line x1="48" y1="94.9" x2="684" y2="94.9" stroke="#ded0b8" stroke-width="1"></line>
+<line x1="48" y1="147.4" x2="684" y2="147.4" stroke="#ded0b8" stroke-width="1"></line>
+<line x1="48" y1="200" x2="684" y2="200" stroke="#94866f" stroke-width="1"></line>
+<text x="40" y="46" text-anchor="end" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">42</text>
+<text x="40" y="99" text-anchor="end" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">38</text>
+<text x="40" y="151" text-anchor="end" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">34</text>
+<text x="40" y="204" text-anchor="end" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">30</text>
+<rect x="48" y="102.7" width="636" height="56.6" fill="#dde4c6"></rect>
+<line x1="48" y1="42.3" x2="684" y2="42.3" stroke="#231c14" stroke-width="1.5" stroke-dasharray="6 4"></line>
+<text x="684" y="36" text-anchor="end" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">Last round (preferred) AED 42.00</text>
+<polyline points="96,144.8 208,134.3 320,165.8 432,119.8 544,93.5 656,123.8" fill="none" stroke="#94866f" stroke-width="1"></polyline>
+<circle cx="96" cy="144.8" r="5" fill="#231c14"></circle>
+<circle cx="208" cy="134.3" r="5" fill="#231c14"></circle>
+<circle cx="320" cy="165.8" r="6" fill="#b8561a"></circle>
+<circle cx="432" cy="119.8" r="5" fill="#231c14"></circle>
+<circle cx="544" cy="93.5" r="6" fill="#2f4f84"></circle>
+<circle cx="656" cy="123.8" r="5" fill="#231c14"></circle>
+<text x="96" y="222" text-anchor="middle" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">Apr</text>
+<text x="208" y="222" text-anchor="middle" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">May</text>
+<text x="320" y="222" text-anchor="middle" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">Jun</text>
+<text x="432" y="222" text-anchor="middle" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">Jul</text>
+<text x="544" y="222" text-anchor="middle" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">Aug</text>
+<text x="656" y="222" text-anchor="middle" font-size="12" fill="#685b49" font-family="IBM Plex Sans, sans-serif">Sep</text>
+</svg>
+<div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; line-height: 16px; color: #685b49">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; background: #dde4c6"></span>Fair-value band (25th–75th percentile)</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 5px; background: #231c14"></span>Trade inside band</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 5px; background: #2f4f84"></span>Above band</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 5px; background: #b8561a"></span>Below band</span>
+<span>Related-party trades excluded. Open bids are sealed and never shown.</span>
+</div>
+</section>
+
+<section style="background: #fffaf0; border: 1px solid #ded0b8; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-family: 'IBM Plex Serif', Georgia, serif; font-size: 20px; line-height: 28px; font-weight: 500">Value at exit</h2>
+<div style="font-size: 13px; line-height: 20px; color: #685b49">Why ordinary shares trade below the round price: preferred shares are paid first.</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<label for="exit" style="font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.02em; color: #685b49">Exit valuation</label>
+<span style="font-size: 14px; line-height: 20px; font-weight: 600; font-variant-numeric: tabular-nums">AED 400M</span>
+</div>
+<input id="exit" type="range" min="100" max="2000" value="400" style="width: 100%; accent-color: #1f4a30">
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; padding-top: 4px; border-top: 1px solid #ded0b8">
+<div style="display: flex; flex-direction: column; gap: 4px; padding-top: 10px">
+<div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 20px"><span>Series B preferred</span><span style="font-weight: 600; font-variant-numeric: tabular-nums">AED 42.00</span></div>
+<div style="height: 8px; border-radius: 4px; background: #ece2cf"><div style="width: 100%; height: 8px; border-radius: 4px; background: #1f4a30"></div></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 20px"><span>Ordinary</span><span style="font-weight: 600; font-variant-numeric: tabular-nums">AED 34.90</span></div>
+<div style="height: 8px; border-radius: 4px; background: #ece2cf"><div style="width: 83%; height: 8px; border-radius: 4px; background: #1f4a30"></div></div>
+</div>
+</div>
+<div style="margin-top: auto; font-size: 12px; line-height: 16px; color: #685b49">Simplified model: 1x non-participating preferences. Guidance only, not investment advice.</div>
+</section>
+</div>
+
+<section style="background: #fffaf0; border: 1px solid #ded0b8; border-radius: 6px; overflow: hidden">
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 16px 20px">
+<h2 style="margin: 0; font-family: 'IBM Plex Serif', Georgia, serif; font-size: 20px; line-height: 28px; font-weight: 500">Listings</h2>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 20px; color: #685b49">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Sealed bids · reserve prices are never shown to buyers</span>
+</div>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px; line-height: 20px">
+<thead>
+<tr style="background: #ece2cf; color: #685b49; font-size: 12px; line-height: 16px; letter-spacing: 0.02em">
+<th scope="col" style="text-align: left; font-weight: 500; padding: 10px 20px; border-top: 1px solid #ded0b8; border-bottom: 1px solid #ded0b8">LISTING</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 10px 12px; border-top: 1px solid #ded0b8; border-bottom: 1px solid #ded0b8">SHARE CLASS</th>
+<th scope="col" style="text-align: right; font-weight: 500; padding: 10px 12px; border-top: 1px solid #ded0b8; border-bottom: 1px solid #ded0b8">QUANTITY</th>
+<th scope="col" style="text-align: right; font-weight: 500; padding: 10px 12px; border-top: 1px solid #ded0b8; border-bottom: 1px solid #ded0b8">MIN FILL</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 10px 12px; border-top: 1px solid #ded0b8; border-bottom: 1px solid #ded0b8">SELLER</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 10px 12px; border-top: 1px solid #ded0b8; border-bottom: 1px solid #ded0b8">BID WINDOW</th>
+<th scope="col" style="text-align: left; font-weight: 500; padding: 10px 12px; border-top: 1px solid #ded0b8; border-bottom: 1px solid #ded0b8">STATUS</th>
+<th scope="col" style="padding: 10px 20px; border-top: 1px solid #ded0b8; border-bottom: 1px solid #ded0b8"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Action</span></th>
+</tr>
+</thead>
+<tbody>
+<tr style="height: 52px; background: #e2e8d2">
+<td style="padding: 0 20px; border-bottom: 1px solid #ded0b8"><div style="font-weight: 600">L-2019</div><div style="font-size: 12px; line-height: 16px; color: #685b49">Your bid · AED 34.00</div></td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8">Ordinary</td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums">3,000 sh</td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8; text-align: right; font-variant-numeric: tabular-nums">1,000 sh</td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8">Holder #S-102</td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8; font-variant-numeric: tabular-nums">Closed 23 Sep</td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8"><span style="font-size: 12px; line-height: 16px; font-weight: 500; padding: 3px 8px; border-radius: 4px; background: #f9ebd0; color: #8c5500">Countered at AED 35.50 · 41h left</span></td>
+<td style="padding: 0 20px; border-bottom: 1px solid #ded0b8; text-align: right"><button type="button" style="height: 32px; padding: 0 14px; border-radius: 6px; border: 1px solid #1f4a30; background: #1f4a30; color: #fffaf0; font-size: 13px; font-weight: 600; cursor: pointer">Respond</button></td>
+</tr>
+<tr style="height: 52px">
+<td style="padding: 0 20px; border-bottom: 1px solid #ded0b8; font-weight: 600">L-2031</td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8">Ordinary</td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums">12,000 sh</td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8; text-align: right; font-variant-numeric: tabular-nums">2,000 sh</td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8"><div style="display: flex; align-items: center; gap: 6px">Holder #S-214
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#85602a" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="Holding verified by company"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m9 12 2 2 4-4"></path></svg></div></td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8; font-variant-numeric: tabular-nums">Closes 30 Sep · in 5 days</td>
+<td style="padding: 0 12px; border-bottom: 1px solid #ded0b8"><span style="font-size: 12px; line-height: 16px; font-weight: 500; padding: 3px 8px; border-radius: 4px; background: #e7eaf1; color: #2f4f84">Live</span></td>
+<td style="padding: 0 20px; border-bottom: 1px solid #ded0b8; text-align: right"><button type="button" style="height: 32px; padding: 0 14px; border-radius: 6px; border: 1px solid #94866f; background: #fffaf0; color: #231c14; font-size: 13px; font-weight: 500; cursor: pointer">Bid</button></td>
+</tr>
+<tr style="height: 52px">
+<td style="padding: 0 20px; font-weight: 600">L-2027</td>
+<td style="padding: 0 12px">Ordinary</td>
+<td style="padding: 0 12px; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums">5,500 sh</td>
+<td style="padding: 0 12px; text-align: right; font-variant-numeric: tabular-nums">All or none</td>
+<td style="padding: 0 12px"><div style="display: flex; align-items: center; gap: 6px">Holder #S-198
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#85602a" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="Holding verified by company"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m9 12 2 2 4-4"></path></svg></div></td>
+<td style="padding: 0 12px; font-variant-numeric: tabular-nums">Closes 26 Sep · in 20h</td>
+<td style="padding: 0 12px"><div style="display: flex; gap: 6px"><span style="font-size: 12px; line-height: 16px; font-weight: 500; padding: 3px 8px; border-radius: 4px; background: #e7eaf1; color: #2f4f84">Live</span><span style="font-size: 12px; line-height: 16px; font-weight: 500; padding: 3px 8px; border-radius: 4px; background: #f9ebd0; color: #8c5500">Closing soon</span></div></td>
+<td style="padding: 0 20px; text-align: right"><button type="button" style="height: 32px; padding: 0 14px; border-radius: 6px; border: 1px solid #94866f; background: #fffaf0; color: #231c14; font-size: 13px; font-weight: 500; cursor: pointer">Bid</button></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px">
+<section style="background: #fffaf0; border: 1px solid #ded0b8; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<h2 style="margin: 0; font-family: 'IBM Plex Serif', Georgia, serif; font-size: 20px; line-height: 28px; font-weight: 500">Questions and answers</h2>
+<span style="font-size: 13px; line-height: 20px; color: #685b49">Answers are visible to every approved buyer</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; padding-bottom: 14px; border-bottom: 1px solid #ded0b8">
+<div style="font-weight: 600">Is there a liquidation preference ahead of ordinary shares?</div>
+<div>Yes. Series A and Series B each hold a 1x non-participating preference; Series B ranks first.</div>
+<div style="font-size: 12px; line-height: 16px; color: #685b49">Answered by Falaj Robotics (CFO) · 21 Sep 2026</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-weight: 600">Are you planning a new funding round in the next 12 months?</div>
+<div>We don't comment on future rounds. The latest audited financials are in the info pack.</div>
+<div style="font-size: 12px; line-height: 16px; color: #685b49">Answered by Falaj Robotics (CFO) · 18 Sep 2026</div>
+</div>
+<div style="display: flex; gap: 8px">
+<label for="ask" style="position: absolute; width: 1px; height: 1px; overflow: hidden">Ask the company a question</label>
+<input id="ask" type="text" placeholder="Ask the company a question" style="flex-grow: 1; height: 40px; box-sizing: border-box; padding: 0 12px; border-radius: 4px; border: 1px solid #94866f; background: #fffaf0; color: #231c14; font-size: 14px">
+<button type="button" style="height: 40px; padding: 0 16px; border-radius: 6px; border: 1px solid #94866f; background: #fffaf0; color: #231c14; font-size: 14px; font-weight: 500; cursor: pointer">Ask</button>
+</div>
+</section>
+
+<section style="background: #fffaf0; border: 1px solid #ded0b8; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-family: 'IBM Plex Serif', Georgia, serif; font-size: 20px; line-height: 28px; font-weight: 500">Info pack</h2>
+<div style="display: flex; align-items: center; gap: 6px"><span style="font-size: 12px; line-height: 16px; font-weight: 500; padding: 3px 8px; border-radius: 4px; background: #e4edd8; color: #2d6a3c">Access approved</span><span style="font-size: 12px; line-height: 16px; color: #685b49">NDA accepted 22 Sep 2026</span></div>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #ded0b8; border-radius: 6px; color: #231c14">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+<span style="flex-grow: 1">FY2025 audited financials</span><span style="font-size: 12px; line-height: 16px; color: #685b49">PDF · watermarked</span></a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #ded0b8; border-radius: 6px; color: #231c14">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+<span style="flex-grow: 1">Cap table summary</span><span style="font-size: 12px; line-height: 16px; color: #685b49">PDF · watermarked</span></a>
+<a href="#" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #ded0b8; border-radius: 6px; color: #231c14">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#685b49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+<span style="flex-grow: 1">Transfer clauses (articles)</span><span style="font-size: 12px; line-height: 16px; color: #685b49">PDF · watermarked</span></a>
+</section>
+</div>
+
+</main>
+</div>
+</div>
+</body>
+</html>

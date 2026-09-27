@@ -1,14 +1,29 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# build and tooling output
+/.next/
+/out/
+/build
+/dist
+/playwright-report
+/test-results
+/blob-report
+/coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# local files and secrets
 .DS_Store
-.env
-.env.*
-!.env.example
-!.env.sample
-node_modules/
-.venv/
-__pycache__/
-*.py[cod]
-dist/
-build/
-.next/
-coverage/
+*.pem
 *.log
+.env*
+!.env.example
+.vercel
