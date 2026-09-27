@@ -6,3 +6,18 @@ export const ROLE_LABELS: Record<Role, string> = {
   company_admin: "company admin",
   operator: "operator",
 };
+export type ActorRole = Role | "system";
+export interface Actor {
+  userId: string;
+  role: ActorRole;
+  orgId: string | null;
+  sandboxId: string;
+  simulated: boolean;
+}
+export const SYSTEM_ACTOR = (sandboxId: string): Actor => ({
+  userId: "system",
+  role: "system",
+  orgId: null,
+  sandboxId,
+  simulated: false,
+});
