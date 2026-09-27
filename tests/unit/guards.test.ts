@@ -69,6 +69,11 @@ export function checkSource(file: string, source: string): Violation[] {
       scan("current time outside clock", /\bDate\s*\.\s*now\s*\(|\bnew\s+Date\s*\(\s*\)/g);
   }
   if (inSrc) scan("unsafe HTML", /dangerouslySetInnerHTML/g);
+  if (file.startsWith("src/domain/")) {
+    scan("domain numeric parsing", /\b(?:Number|parseFloat|parseInt)\s*\(/g);
+    scan("domain console", /\bconsole\s*\./g);
+    scan("domain randomness", /\bMath\s*\.\s*random\s*\(/g);
+  }
   if (inSrc || file === "next.config.ts")
     scan("forbidden caching", /["']use cache["']|unstable_cache|force-static|cacheComponents/g);
   if (inSrc && file.endsWith(".tsx")) scan("emoji", /\p{Extended_Pictographic}/gu);
@@ -101,6 +106,9 @@ describe("guard self-tests", () => {
     ["lib dependency", "src/lib/bad.ts", 'import { db } from "@/server/db";'],
     ["forbidden caching", "next.config.ts", "export default { cacheComponents: true };"],
     ["emoji", "src/components/bad.tsx", "const x = <p>\u{1F600}</p>;"],
+    ["domain numeric parsing", "src/domain/bad.ts", "const x = Number(1n);"],
+    ["domain console", "src/domain/bad.ts", "console.log('bad');"],
+    ["domain randomness", "src/domain/bad.ts", "Math.random();"],
   ])("detects %s", (rule, file, source) =>
     expect(checkSource(file, `\n${source}`)).toContainEqual({ file, line: 2, rule }));
   it.each([

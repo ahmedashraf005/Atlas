@@ -6,6 +6,12 @@ export default defineConfig({
     environment: "node",
     include: ["tests/unit/**/*.test.{ts,tsx}", "tests/integration/**/*.test.ts"],
     setupFiles: ["tests/setup/vitest.setup.ts"],
+    coverage: {
+      provider: "v8",
+      include: ["src/domain/**", "src/lib/**"],
+      reporter: ["text", "json", "json-summary", "html"],
+      thresholds: { lines: 95, branches: 90, functions: 95, statements: 95 },
+    },
   },
   resolve: {
     alias: {

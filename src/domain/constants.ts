@@ -1,0 +1,11 @@
+export const COUNTER_RESPONSE_HOURS = 48;
+export const MAX_COUNTERS_PER_LISTING = 3;
+export const DECISION_DAYS_AFTER_WINDOW = 7;
+export const BID_VALIDITY_DAYS_AFTER_WINDOW = 14;
+export const BAND_LOOKBACK_DAYS = 180;
+export const BAND_MIN_TRADES = 3;
+export const BID_WINDOW_DAY_OPTIONS = [3, 5, 7] as const;
+export const DEFAULT_BID_WINDOW_DAYS = 5;
+export const MAX_RATIONALE_LENGTH = 500;
+export const MAX_DISPUTE_REASON_LENGTH = 1000;
+export const GENESIS_HASH = "0".repeat(64);
