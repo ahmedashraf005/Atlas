@@ -7,6 +7,7 @@ import {
   advanceClock,
   resetSandbox,
   setRofrMode,
+  simulateCompetingBid,
   switchPersona,
   toggleAutopilot,
 } from "@/components/shell/demo-actions";
@@ -129,8 +130,18 @@ export function DemoControls({
         >
           Company exercises ROFR
         </DropdownMenuCheckboxItem>
-        {/* TODO(segment-5): simulate competing bid */}
-        <DropdownMenuItem disabled>Simulate competing bid · Segment 5</DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={busy}
+          onSelect={() =>
+            run(async () => {
+              const result = await simulateCompetingBid({ status: "idle" }, {});
+              if (result.status === "success") toast.success(result.data.message);
+              return result;
+            })
+          }
+        >
+          Simulate competing bid
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

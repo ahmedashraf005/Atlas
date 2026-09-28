@@ -7,6 +7,7 @@ import { ok } from "@/domain/result";
 import { type ActionState, defineAction } from "@/server/actions/pipeline";
 import { appendAudit } from "@/server/audit";
 import { sandboxClock } from "@/server/clock";
+import { simulateBid } from "@/server/competing";
 import { refreshInTransaction } from "@/server/refresh";
 import * as sandboxes from "@/server/repositories/sandboxes";
 import { resetInTransaction } from "@/server/sandbox";
@@ -156,3 +157,16 @@ export async function resetSandbox(
   }
   return state;
 }
+
+export const simulateCompetingBidDef = {
+  name: "demo.simulateCompetingBid",
+  input: z.object({ listingId: z.uuid().optional() }),
+  revalidate: (data: { listingId: string; slug: string }) => [
+    "/holdings",
+    "/bids",
+    `/listings/${data.listingId}`,
+    `/companies/${data.slug}`,
+  ],
+  handler: (ctx: TxContext, input: { listingId?: string }) => simulateBid(ctx, input.listingId),
+};
+export const simulateCompetingBid = defineAction(simulateCompetingBidDef);

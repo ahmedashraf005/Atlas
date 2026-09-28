@@ -18,3 +18,9 @@ export async function setRofrMode(...args: Parameters<typeof actions.setRofrMode
 export async function resetSandbox(...args: Parameters<typeof actions.resetSandbox>) {
   return actions.resetSandbox(...args);
 }
+
+export async function simulateCompetingBid(
+  ...args: Parameters<typeof actions.simulateCompetingBid>
+) {
+  return actions.simulateCompetingBid(...args);
+}

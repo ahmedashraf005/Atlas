@@ -5,6 +5,7 @@ import type { Result } from "@/domain/result";
 import type { ActionError } from "@/server/errors";
 import * as companies from "@/server/repositories/companies";
 import * as jobs from "@/server/repositories/jobs";
+import * as listings from "@/server/repositories/listings";
 import * as users from "@/server/repositories/users";
 import type { EntityOf, TxContext } from "@/server/transitions";
 export interface PlannedJob {
@@ -83,6 +84,39 @@ export async function scheduleAutomation(
   entity: EntityOf<EntityKind>,
 ): Promise<void> {
   const sid = ctx.sandbox.id;
+  // New seller rows reuse the job uniqueness key; DECIDE is a custom-job marker, not a domain event.
+  if (ctx.sandbox.autopilot) {
+    const listing =
+      kind === "listing" && entity.status === "Closed" && "sellerId" in entity
+        ? entity
+        : kind === "bid" &&
+            entity.status === "Submitted" &&
+            "counterOutcome" in entity &&
+            entity.counterOutcome !== null &&
+            "listingId" in entity
+          ? await listings.find(ctx.tx, sid, entity.listingId)
+          : null;
+    if (
+      listing &&
+      "sellerId" in listing &&
+      ["Closed", "Negotiating"].includes(listing.status) &&
+      listing.sellerId !== ctx.personaUserId
+    )
+      await jobs.insert(ctx.tx, sid, {
+        id: v7(),
+        sandboxId: sid,
+        dueAt: new Date(ctx.now.getTime() + (kind === "listing" ? 5000 : 3000)),
+        kind: "seller_decide",
+        entity: "listing",
+        entityId: listing.id,
+        event: "DECIDE",
+        partyUserId: listing.sellerId,
+        status: "pending",
+        resultCode: null,
+        createdAt: ctx.now,
+        executedAt: null,
+      });
+  }
   const companyId = "companyId" in entity ? entity.companyId : null;
   let orgId: string | null = null;
   if (companyId) orgId = (await companies.find(ctx.tx, sid, companyId))?.orgId ?? null;

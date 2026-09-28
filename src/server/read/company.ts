@@ -166,7 +166,9 @@ export async function getCompanyModel(viewer: Viewer, slug: string, dbArg?: Db) 
         Number(mine.some((x) => x.listingId === b.id)) -
         Number(mine.some((x) => x.listingId === a.id)) +
         (mine.some((x) => x.listingId === a.id) === mine.some((x) => x.listingId === b.id)
-          ? (b.windowClosesAt?.getTime() ?? 0) - (a.windowClosesAt?.getTime() ?? 0)
+          ? (a.windowClosesAt?.getTime() ?? Number.POSITIVE_INFINITY) -
+              (b.windowClosesAt?.getTime() ?? Number.POSITIVE_INFINITY) ||
+            a.ref.localeCompare(b.ref)
           : 0),
     )
     .map((l) => {

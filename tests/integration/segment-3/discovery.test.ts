@@ -77,7 +77,7 @@ it("builds exact Falaj buyer model without another buyer's prices", async () => 
   expect(model.stats.band.caption).toBe("From 6 trades in the last 180 days");
   expect(model.stats.last.value).toBe("AED 35.80");
   expect(model.stats.last.caption).toContain("4,000 ordinary shares");
-  expect(model.listings.map((l) => l.ref)).toEqual(["L-2019", "L-2031", "L-2027"]);
+  expect(model.listings.map((l) => l.ref)).toEqual(["L-2019", "L-2027", "L-2031"]);
   expect(model.listings[0]).toMatchObject({ ownBid: "Your bid · AED 34.00", highlight: true });
   expect(model.listings[0]?.badges[0]?.text).toContain("Countered at AED 35.50");
   expect(model.listings.map((l) => l.action?.label)).toEqual(["Respond", "Bid", "Bid"]);

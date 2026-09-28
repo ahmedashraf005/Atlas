@@ -88,3 +88,16 @@ export async function nonTerminal(db: Database, sandboxId: string): Promise<Trad
       )
   ).map(toTrade);
 }
+
+export async function forListing(db: Database, sandboxId: string, listingId: string) {
+  return db
+    .select()
+    .from(trades)
+    .where(and(eq(trades.sandboxId, sandboxId), eq(trades.listingId, listingId)));
+}
+export async function forBuyer(db: Database, sandboxId: string, buyerId: string) {
+  return db
+    .select()
+    .from(trades)
+    .where(and(eq(trades.sandboxId, sandboxId), eq(trades.buyerId, buyerId)));
+}

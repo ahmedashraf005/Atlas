@@ -94,3 +94,55 @@ export async function countForListing(
     );
   return row?.total ?? 0;
 }
+
+export async function forListing(
+  db: Database,
+  sandboxId: string,
+  listingId: string,
+): Promise<Bid[]> {
+  return (
+    await db
+      .select()
+      .from(bids)
+      .where(and(eq(bids.sandboxId, sandboxId), eq(bids.listingId, listingId)))
+  ).map(toBid);
+}
+export async function forBuyer(db: Database, sandboxId: string, buyerId: string): Promise<Bid[]> {
+  return (
+    await db
+      .select()
+      .from(bids)
+      .where(and(eq(bids.sandboxId, sandboxId), eq(bids.buyerId, buyerId)))
+  ).map(toBid);
+}
+export async function byKey(
+  db: Database,
+  sandboxId: string,
+  buyerId: string,
+  key: string,
+): Promise<Bid | null> {
+  const [row] = await db
+    .select()
+    .from(bids)
+    .where(
+      and(eq(bids.sandboxId, sandboxId), eq(bids.buyerId, buyerId), eq(bids.idempotencyKey, key)),
+    )
+    .limit(1);
+  return row ? toBid(row) : null;
+}
+export async function insertOnce(
+  tx: Tx,
+  sandboxId: string,
+  entity: Bid,
+): Promise<{ bid: Bid; inserted: boolean }> {
+  if (entity.sandboxId !== sandboxId) throw new ConflictError();
+  const [row] = await tx
+    .insert(bids)
+    .values(entity)
+    .onConflictDoNothing({ target: [bids.buyerId, bids.idempotencyKey] })
+    .returning();
+  if (row) return { bid: toBid(row), inserted: true };
+  const existing = await byKey(tx, sandboxId, entity.buyerId, entity.idempotencyKey);
+  if (!existing) throw new ConflictError();
+  return { bid: existing, inserted: false };
+}

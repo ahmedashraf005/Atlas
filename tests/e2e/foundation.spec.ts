@@ -1,9 +1,6 @@
 import { expect, test } from "./fixtures";
 
 const routes = [
-  ["/listings/demo-id/bid", "Place a bid", 5],
-  ["/bids", "My bids", 5],
-  ["/listings/demo-id", "Listing", 5],
   ["/trades", "Trades", 6],
   ["/trades/demo-id", "Trade room", 6],
   ["/company", "Company console", 7],
@@ -111,10 +108,9 @@ test("mobile sheet navigation and demo controls work without overflow", async ({
   await page.getByRole("button", { name: "Demo controls" }).click();
   await expect(page.getByRole("menuitem", { name: "+1 day", exact: true })).toBeEnabled();
   await expect(page.getByRole("menuitem", { name: "Buyer A" })).toBeEnabled();
-  await expect(page.getByRole("menuitem", { name: "Simulate competing bid" })).toHaveAttribute(
-    "data-disabled",
-    "",
-  );
+  await expect(
+    page.getByRole("menuitem", { name: "Simulate competing bid", exact: true }),
+  ).toBeEnabled();
   await page.keyboard.press("Escape");
   await page.goto("/dev/ui");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(

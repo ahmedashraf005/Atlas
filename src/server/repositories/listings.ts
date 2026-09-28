@@ -125,3 +125,19 @@ export async function forSeller(
     .from(listings)
     .where(and(eq(listings.sandboxId, sandboxId), eq(listings.sellerId, sellerId)));
 }
+
+export async function findPublic(
+  db: Database,
+  sandboxId: string,
+  id: string,
+): Promise<ListingPublicView | null> {
+  const [row] = await db
+    .select(listingPublicColumns)
+    .from(listings)
+    .where(and(eq(listings.sandboxId, sandboxId), eq(listings.id, id)));
+  return row ?? null;
+}
+
+export async function listWithRefs(db: Database, sandboxId: string) {
+  return db.select().from(listings).where(eq(listings.sandboxId, sandboxId));
+}
