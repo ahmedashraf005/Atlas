@@ -10,6 +10,49 @@ export async function list(db: Database, sandboxId: string): Promise<AuditEntry[
     .where(eq(auditLog.sandboxId, sandboxId))
     .orderBy(asc(auditLog.seq));
 }
+export async function forTrade(
+  db: Database,
+  sandboxId: string,
+  tradeId: string,
+): Promise<AuditEntry[]> {
+  return db
+    .select()
+    .from(auditLog)
+    .where(
+      and(
+        eq(auditLog.sandboxId, sandboxId),
+        eq(auditLog.entity, "trade"),
+        eq(auditLog.entityId, tradeId),
+      ),
+    )
+    .orderBy(asc(auditLog.seq));
+}
+// Metadata only: the listing snapshots contain reserve prices and must stay out of buyer reads.
+export async function listingAllocationAt(
+  db: Database,
+  sandboxId: string,
+  listingId: string,
+  at: Date,
+) {
+  const [entry] = await db
+    .select({
+      actorId: auditLog.actorId,
+      actorRole: auditLog.actorRole,
+      simulated: auditLog.simulated,
+      at: auditLog.at,
+    })
+    .from(auditLog)
+    .where(
+      and(
+        eq(auditLog.sandboxId, sandboxId),
+        eq(auditLog.entityId, listingId),
+        eq(auditLog.action, "listing.ALLOCATE"),
+        eq(auditLog.at, at),
+      ),
+    )
+    .limit(1);
+  return entry ?? null;
+}
 export async function head(
   db: Database,
   sandboxId: string,

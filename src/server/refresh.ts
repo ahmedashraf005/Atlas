@@ -2,7 +2,13 @@ import "server-only";
 import { dueBidEvent, dueListingEvent, dueTradeEvent, type SystemEvent } from "@/domain/deadlines";
 import { SYSTEM_ACTOR } from "@/domain/roles";
 import "@/server/jobs";
-import { getJobHandler, JobSkippedError, jobWillExecute } from "@/server/automation";
+import {
+  getJobHandler,
+  JobSkippedError,
+  jobWillExecute,
+  missingTradeJobs,
+  reconcileTradeJobs,
+} from "@/server/automation";
 import { sandboxClock } from "@/server/clock";
 import type { Database, Db, Tx } from "@/server/db/client";
 import type { SandboxRow } from "@/server/db/schema";
@@ -72,7 +78,7 @@ export async function refreshInTransaction(
 ): Promise<{ changed: boolean; pendingJobs: number }> {
   const persona = await users.forPersona(tx, sandbox.id, sandbox.persona),
     now = sandboxClock(sandbox).now();
-  let changed = false;
+  let changed = await reconcileTradeJobs(tx, sandbox, now);
   for (let step = 0; step < 25; step++) {
     const item = (await dueItems(tx, sandbox, persona.id, now))[0];
     if (!item) break;
@@ -143,7 +149,10 @@ export async function refreshSandbox(
   const sandbox = await sandboxes.find(db, sandboxId);
   if (!sandbox) return { changed: false, pendingJobs: 0 };
   const persona = await users.forPersona(db, sandboxId, sandbox.persona);
-  if (!(await dueItems(db, sandbox, persona.id, sandboxClock(sandbox).now())).length)
+  if (
+    !(await dueItems(db, sandbox, persona.id, sandboxClock(sandbox).now())).length &&
+    !(await missingTradeJobs(db, sandbox)).length
+  )
     return { changed: false, pendingJobs: await pendingCount(db, sandbox, persona.id) };
   return db.transaction(async (tx) =>
     refreshInTransaction(tx, await sandboxes.lockSandbox(tx, sandboxId)),

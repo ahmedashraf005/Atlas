@@ -205,7 +205,9 @@ it("submits a holding and simulated company verifies it at three seconds", async
   expect(r.status).toBe("success");
   if (r.status !== "success") return;
   expect((await holdings.find(db, sid, r.data.holdingId))?.status).toBe("PendingCompany");
-  const pending = await (await jobs.list(db, sid)).filter((j) => j.status === "pending"),
+  const pending = (await jobs.list(db, sid)).filter(
+      (j) => j.entity === "holding" && j.entityId === r.data.holdingId,
+    ),
     admin = (await users.list(db, sid)).find((u) => u.handle === "Wadi Ledger · CFO");
   expect(pending).toHaveLength(1);
   expect(pending[0]).toMatchObject({ event: "VERIFY", partyUserId: admin?.id });

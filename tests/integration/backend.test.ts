@@ -500,7 +500,11 @@ it("off keeps jobs pending, persona switch pauses their jobs, and on executes th
   expect(await jobs.list(db, sid)).toHaveLength(1);
   await db.transaction((tx) => sandboxes.save(tx, sid, { persona: "seller" }));
   await refreshSandbox(db, sid);
-  expect(await jobs.list(db, sid)).toHaveLength(0);
+  const remaining = await jobs.list(db, sid);
+  expect(remaining.filter((j) => j.entity === "listing")).toHaveLength(0);
+  expect(remaining).toMatchObject([
+    { entity: "trade", event: "WAIVE", entityId: (await tradeByRef("T-1042")).id },
+  ]);
   const unknown = await db
     .select()
     .from(schema.automationJobs)
@@ -734,7 +738,7 @@ it("automation scheduling deduplicates, and moved-state jobs skip without a seco
   const done = await db
     .select()
     .from(schema.automationJobs)
-    .where(eq(schema.automationJobs.sandboxId, sid));
+    .where(and(eq(schema.automationJobs.sandboxId, sid), eq(schema.automationJobs.entityId, id)));
   expect(done[0]).toMatchObject({ status: "skipped", resultCode: "INVALID_TRANSITION" });
 });
 it("registered custom job errors roll back their writes and audit before being marked skipped", async () => {

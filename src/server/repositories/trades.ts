@@ -1,9 +1,10 @@
 import "server-only";
-import { and, eq, notInArray } from "drizzle-orm";
+import { and, eq, inArray, notInArray, or } from "drizzle-orm";
 import { MACHINES } from "@/domain/machines";
+import type { Actor } from "@/domain/roles";
 import type { Trade } from "@/domain/types";
 import type { Database, Tx } from "@/server/db/client";
-import { trades } from "@/server/db/schema";
+import { auditLog, companies, trades } from "@/server/db/schema";
 import { ConflictError } from "@/server/errors";
 export function toTrade(row: typeof trades.$inferSelect): Trade {
   return {
@@ -100,4 +101,84 @@ export async function forBuyer(db: Database, sandboxId: string, buyerId: string)
     .select()
     .from(trades)
     .where(and(eq(trades.sandboxId, sandboxId), eq(trades.buyerId, buyerId)));
+}
+export async function findRow(db: Database, sandboxId: string, id: string) {
+  const [row] = await db
+    .select()
+    .from(trades)
+    .where(and(eq(trades.sandboxId, sandboxId), eq(trades.id, id)));
+  return row ?? null;
+}
+export async function visibleRows(db: Database, sandboxId: string, actor: Actor) {
+  if (actor.sandboxId !== sandboxId || actor.role === "system") return [];
+  if (actor.role === "company_admin")
+    return (
+      await db
+        .select({ trade: trades })
+        .from(trades)
+        .innerJoin(
+          companies,
+          and(eq(companies.id, trades.companyId), eq(companies.sandboxId, sandboxId)),
+        )
+        .where(
+          and(
+            eq(trades.sandboxId, sandboxId),
+            eq(companies.orgId, actor.orgId ?? "00000000-0000-0000-0000-000000000000"),
+          ),
+        )
+    ).map((r) => r.trade);
+  return db
+    .select()
+    .from(trades)
+    .where(
+      and(
+        eq(trades.sandboxId, sandboxId),
+        actor.role === "seller"
+          ? eq(trades.sellerId, actor.userId)
+          : actor.role === "buyer"
+            ? eq(trades.buyerId, actor.userId)
+            : undefined,
+      ),
+    );
+}
+/** Quantity history only; document generation never needs other trades' prices. */
+export async function registerHistory(
+  db: Database,
+  sandboxId: string,
+  holdingId: string,
+  buyerId: string,
+  shareClassId: string,
+) {
+  return db
+    .select({
+      id: trades.id,
+      holdingId: trades.holdingId,
+      sellerId: trades.sellerId,
+      buyerId: trades.buyerId,
+      quantity: trades.quantity,
+      status: trades.status,
+      settledAt: trades.settledAt,
+      exercisedAt: auditLog.at,
+    })
+    .from(trades)
+    .leftJoin(
+      auditLog,
+      and(
+        eq(auditLog.sandboxId, sandboxId),
+        eq(auditLog.entityId, trades.id),
+        eq(auditLog.entity, "trade"),
+        eq(auditLog.action, "trade.EXERCISE"),
+      ),
+    )
+    .where(
+      and(
+        eq(trades.sandboxId, sandboxId),
+        inArray(trades.status, ["Settled", "RofrExercised"]),
+        or(
+          eq(trades.holdingId, holdingId),
+          and(eq(trades.buyerId, buyerId), eq(trades.shareClassId, shareClassId)),
+          and(eq(trades.sellerId, buyerId), eq(trades.shareClassId, shareClassId)),
+        ),
+      ),
+    );
 }

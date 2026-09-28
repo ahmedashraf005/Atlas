@@ -2,10 +2,13 @@ import "server-only";
 import { v7 } from "uuid";
 import type { EntityKind } from "@/domain/effects";
 import type { Result } from "@/domain/result";
+import type { Database, Tx } from "@/server/db/client";
+import type { SandboxRow } from "@/server/db/schema";
 import type { ActionError } from "@/server/errors";
 import * as companies from "@/server/repositories/companies";
 import * as jobs from "@/server/repositories/jobs";
 import * as listings from "@/server/repositories/listings";
+import * as trades from "@/server/repositories/trades";
 import * as users from "@/server/repositories/users";
 import type { EntityOf, TxContext } from "@/server/transitions";
 export interface PlannedJob {
@@ -151,6 +154,63 @@ export async function scheduleAutomation(
       createdAt: ctx.now,
       executedAt: null,
     });
+}
+/** Read-only planning preserves refresh's fast path when every job already exists. */
+export async function missingTradeJobs(db: Database, sandbox: SandboxRow) {
+  if (!sandbox.autopilot) return [];
+  const allUsers = await users.list(db, sandbox.id);
+  const personaUserId = allUsers.find((u) => u.personaKey === sandbox.persona)?.id;
+  if (!personaUserId) throw new Error("Missing persona");
+  const allCompanies = await companies.list(db, sandbox.id);
+  const pending = await jobs.list(db, sandbox.id);
+  const missing: { tradeId: string; job: PlannedJob }[] = [];
+  for (const trade of await trades.nonTerminal(db, sandbox.id)) {
+    const orgId = allCompanies.find((c) => c.id === trade.companyId)?.orgId;
+    const planned = planAutomation(
+      "trade",
+      trade,
+      {
+        autopilot: sandbox.autopilot,
+        rofrMode: sandbox.rofrMode,
+        personaUserId,
+      },
+      {
+        companyAdminId:
+          allUsers.find((u) => u.role === "company_admin" && u.orgId === orgId)?.id ?? null,
+        operatorId: allUsers.find((u) => u.personaKey === "operator")?.id ?? null,
+        secondOperatorId:
+          allUsers.find((u) => u.role === "operator" && u.simulatedOnly)?.id ?? null,
+      },
+    );
+    for (const job of planned)
+      if (
+        !pending.some(
+          (j) =>
+            j.entityId === trade.id && j.event === job.event && j.partyUserId === job.partyUserId,
+        )
+      )
+        missing.push({ tradeId: trade.id, job });
+  }
+  return missing;
+}
+export async function reconcileTradeJobs(tx: Tx, sandbox: SandboxRow, now: Date): Promise<boolean> {
+  const missing = await missingTradeJobs(tx, sandbox);
+  for (const { tradeId, job } of missing)
+    await jobs.insert(tx, sandbox.id, {
+      id: v7(),
+      sandboxId: sandbox.id,
+      kind: "transition",
+      entity: "trade",
+      entityId: tradeId,
+      event: job.event,
+      partyUserId: job.partyUserId,
+      dueAt: new Date(now.getTime() + job.delaySeconds * 1000),
+      createdAt: now,
+      status: "pending",
+      resultCode: null,
+      executedAt: null,
+    });
+  return missing.length > 0;
 }
 export interface SkippedJob {
   status: "skipped";
