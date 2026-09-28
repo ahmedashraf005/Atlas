@@ -8,7 +8,8 @@ export const test = base.extend({
       // Keep this exception scoped to the deliberately tested /nope document; JS calls have arguments.
       const expectedNotFound =
         message.args().length === 0 &&
-        message.location().url === "http://localhost:3100/nope" &&
+        message.location().url ===
+          `http://localhost:${Number(process.env.E2E_PORT ?? 3100)}/nope` &&
         message.text() ===
           "Failed to load resource: the server responded with a status of 404 (Not Found)";
       if (message.type() === "error" && !expectedNotFound)

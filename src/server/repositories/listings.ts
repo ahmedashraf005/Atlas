@@ -114,3 +114,14 @@ export async function nonTerminal(db: Database, sandboxId: string): Promise<List
       )
   ).map(toListing);
 }
+
+export async function forSeller(
+  db: Database,
+  sandboxId: string,
+  sellerId: string,
+): Promise<ListingOwnerView[]> {
+  return db
+    .select()
+    .from(listings)
+    .where(and(eq(listings.sandboxId, sandboxId), eq(listings.sellerId, sellerId)));
+}

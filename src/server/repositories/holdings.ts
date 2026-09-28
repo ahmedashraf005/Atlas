@@ -100,3 +100,16 @@ export async function buyerHolding(
     .for("update");
   return row ? toHolding(row) : null;
 }
+
+export async function forOwner(
+  db: Database,
+  sandboxId: string,
+  ownerId: string,
+): Promise<Holding[]> {
+  return (
+    await db
+      .select()
+      .from(holdings)
+      .where(and(eq(holdings.sandboxId, sandboxId), eq(holdings.ownerId, ownerId)))
+  ).map(toHolding);
+}

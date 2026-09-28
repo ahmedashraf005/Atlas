@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, notInArray } from "drizzle-orm";
+import { and, count, eq, notInArray } from "drizzle-orm";
 import { MACHINES } from "@/domain/machines";
 import type { Bid } from "@/domain/types";
 import type { Database, Tx } from "@/server/db/client";
@@ -75,4 +75,22 @@ export async function nonTerminal(db: Database, sandboxId: string): Promise<Bid[
         and(eq(bids.sandboxId, sandboxId), notInArray(bids.status, [...MACHINES.bid.terminal])),
       )
   ).map(toBid);
+}
+
+export async function countForListing(
+  db: Database,
+  sandboxId: string,
+  listingId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({ total: count() })
+    .from(bids)
+    .where(
+      and(
+        eq(bids.sandboxId, sandboxId),
+        eq(bids.listingId, listingId),
+        notInArray(bids.status, ["Withdrawn", "Rejected", "Expired"]),
+      ),
+    );
+  return row?.total ?? 0;
 }
