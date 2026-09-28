@@ -2,7 +2,7 @@ import { forbidden } from "@/domain/errors";
 import { MACHINES } from "@/domain/machines";
 import { err, ok, type Result } from "@/domain/result";
 import type { Actor } from "@/domain/roles";
-import type { ListingStatus } from "@/domain/types";
+import type { ListingStatus, PriceVisibility } from "@/domain/types";
 export type Resource =
   | { kind: "holding"; sandboxId: string; ownerId: string; companyOrgId: string }
   | {
@@ -25,6 +25,8 @@ export type Resource =
       sandboxId: string;
       companyOrgId: string;
       accessGrant: "none" | "pending" | "approved" | "denied";
+      priceVisibility?: PriceVisibility;
+      isParticipant?: boolean;
     }
   | { kind: "sandbox"; sandboxId: string };
 export type Decision = { allowed: true } | { allowed: false; reason: string };
@@ -39,6 +41,7 @@ export const SIMPLE_ACTIONS = [
   "bid.view",
   "trade.view",
   "company.view",
+  "company.viewTradePrices",
   "company.requestAccess",
   "company.askQuestion",
   "company.viewInfoPack",
@@ -122,6 +125,15 @@ export function can(actor: Actor, action: Action, r: Resource): Decision {
       return permit(r.kind === "trade" && (seller || buyer || company || operator), r);
     case "company.view":
       return permit(r.kind === "company", r);
+    case "company.viewTradePrices":
+      return permit(
+        r.kind === "company" &&
+          (operator ||
+            company ||
+            r.priceVisibility === "members" ||
+            (r.priceVisibility === "participants" && r.isParticipant === true)),
+        r,
+      );
     case "company.requestAccess":
     case "company.askQuestion":
       return permit(r.kind === "company" && actor.role === "buyer", r);

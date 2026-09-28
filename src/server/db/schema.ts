@@ -544,7 +544,7 @@ export const automationJobs = pgTable(
     sandboxId: sid(),
     dueAt: time().notNull(),
     kind: text().notNull(),
-    entity: text().$type<import("@/domain/effects").EntityKind>().notNull(),
+    entity: text().$type<import("@/domain/effects").EntityKind | "company">().notNull(),
     entityId: uuid().notNull(),
     event: text(),
     partyUserId: uuid()

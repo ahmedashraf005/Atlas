@@ -61,7 +61,13 @@ function resource(action: string): Resource {
     return { kind: "bid", sandboxId, buyerId, sellerId, listingStatus: "Closed" };
   if (action.startsWith("trade."))
     return { kind: "trade", sandboxId, buyerId, sellerId, companyOrgId };
-  return { kind: "company", sandboxId, companyOrgId, accessGrant: "approved" };
+  return {
+    kind: "company",
+    sandboxId,
+    companyOrgId,
+    accessGrant: "approved",
+    priceVisibility: "members",
+  };
 }
 const staticRoles: Record<(typeof SIMPLE_ACTIONS)[number], ActorRole[]> = {
   "holding.create": ["seller"],
@@ -73,6 +79,7 @@ const staticRoles: Record<(typeof SIMPLE_ACTIONS)[number], ActorRole[]> = {
   "bid.create": ["buyer"],
   "bid.view": ["seller", "buyer", "operator"],
   "trade.view": ["seller", "buyer", "company_admin", "operator"],
+  "company.viewTradePrices": ["seller", "buyer", "company_admin", "operator"],
   "company.view": ["seller", "buyer", "company_admin", "operator"],
   "company.requestAccess": ["buyer"],
   "company.askQuestion": ["buyer"],

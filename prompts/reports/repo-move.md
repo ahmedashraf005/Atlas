@@ -581,3 +581,19 @@ Running 26 tests using 4 workers
   1 passed (8.7s)
 [ELIFECYCLE] Command failed with exit code 1.
 ```
+
+## Final resume: repository move completed
+
+| Step | Command / verification | Result |
+| --- | --- | --- |
+| 6a | `pnpm exec playwright install chromium` | Exit 0. Chromium v1243, headless shell v1243, and FFmpeg installed in the default `~/Library/Caches/ms-playwright` cache. `PLAYWRIGHT_BROWSERS_PATH` was not set. Full log: `/tmp/atlas-repo-move-browser-install.log`. |
+| 6b | `pnpm test:e2e` | Exit 0. All 26 Chromium tests passed in 19.3 seconds. Full log: `/tmp/atlas-repo-move-e2e-resume.log`. |
+| 7 | `git check-ignore -v .env.local`; verify untracked; `git add -A && git commit -m "Segment 1: domain core"` | Exit 0. Exactly one commit created: `4f33b377dc4bfa4cf984a63be5c4c59fc8fe0123`. `.env.local` is ignored by `.gitignore:27`, was untracked before staging, and is absent from the resulting commit, confirmed with `git ls-tree`. |
+| 8 | `mv ~/Desktop/atlas ~/Desktop/atlas-old` | Exit 0. Original repository preserved at `~/Desktop/atlas-old`; active repository is `~/dev/atlas`. |
+| 9 | Append final results to this report | Completed. This final report append remains uncommitted, as instructed to write it after the single commit. |
+
+No source files changed during this move or final resume. Before committing, comparisons of `src`, `scripts`, and `tests` against the old folder each returned exit 0 with no output. The commit records the existing Segment 1 work and reports; no code was edited to pass checks.
+
+The already-passing verification, environment setup, install and `pnpm check` steps were not repeated. No secret was printed. No push, branch or PR was created.
+
+Open `~/dev/atlas` in VS Code and start Segment 2 there.

@@ -1,7 +1,8 @@
 import "server-only";
 import { dueBidEvent, dueListingEvent, dueTradeEvent, type SystemEvent } from "@/domain/deadlines";
 import { SYSTEM_ACTOR } from "@/domain/roles";
-import { getJobHandler, jobWillExecute } from "@/server/automation";
+import "@/server/jobs";
+import { getJobHandler, JobSkippedError, jobWillExecute } from "@/server/automation";
 import { sandboxClock } from "@/server/clock";
 import type { Database, Db, Tx } from "@/server/db/client";
 import type { SandboxRow } from "@/server/db/schema";
@@ -99,7 +100,7 @@ export async function refreshInTransaction(
       if (!user) code = "NOT_FOUND";
       else {
         const ctx = { ...base, actor: users.toActor(user, true) };
-        if (job.kind === "transition") {
+        if (job.kind === "transition" && job.entity !== "company") {
           const result = await runTransition(
             ctx,
             job.entity,
@@ -115,11 +116,13 @@ export async function refreshInTransaction(
             try {
               await tx.transaction(async (nestedTx) => {
                 const result = await handler({ ...ctx, tx: nestedTx }, job);
+                if ("status" in result) throw new JobSkippedError(result.code);
                 if (!result.ok) throw new RollbackError(result.error);
               });
             } catch (error) {
-              if (!(error instanceof RollbackError)) throw error;
-              code = error.error.code;
+              if (!(error instanceof RollbackError) && !(error instanceof JobSkippedError))
+                throw error;
+              code = error instanceof JobSkippedError ? error.code : error.error.code;
               // Restore the in-memory checkpoint after the savepoint rollback too.
               const current = await sandboxes.find(tx, sandbox.id);
               if (current) Object.assign(sandbox, current);

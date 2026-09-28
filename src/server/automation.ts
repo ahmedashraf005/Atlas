@@ -118,10 +118,20 @@ export async function scheduleAutomation(
       executedAt: null,
     });
 }
+export interface SkippedJob {
+  status: "skipped";
+  code: string;
+}
+export class JobSkippedError extends Error {
+  constructor(public readonly code: string) {
+    super(code);
+    this.name = "JobSkippedError";
+  }
+}
 export type JobHandler = (
   ctx: TxContext,
   job: jobs.JobRow,
-) => Promise<Result<unknown, ActionError>>;
+) => Promise<Result<unknown, ActionError> | SkippedJob>;
 const handlers = new Map<string, JobHandler>();
 export function registerJobHandler(kind: string, handler: JobHandler): void {
   if (kind === "transition") throw new Error("Reserved job kind");
