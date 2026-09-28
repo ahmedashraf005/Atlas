@@ -68,7 +68,32 @@ export function checkSource(file: string, source: string): Violation[] {
     if (file !== "src/lib/clock.ts")
       scan("current time outside clock", /\bDate\s*\.\s*now\s*\(|\bnew\s+Date\s*\(\s*\)/g);
   }
-  if (inSrc) scan("audit immutability", /\b(?:update|delete)\s*\(\s*auditLog\b/g);
+  if (inSrc) {
+    scan("audit immutability", /\b(?:update|delete)\s*\(\s*auditLog\b/g);
+    scan("audit immutability", /\bDELETE\s+FROM\s+"?audit_log"?\b/gi);
+    if (file !== "src/server/demo/tamper.ts")
+      scan("audit immutability", /\bUPDATE\s+"?audit_log"?\b/gi);
+    else {
+      const tree = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
+      const exports = tree.statements.filter(
+        (n) =>
+          ts.isExportDeclaration(n) ||
+          ts.isExportAssignment(n) ||
+          (ts.canHaveModifiers(n) &&
+            ts.getModifiers(n)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)),
+      );
+      if (
+        exports.length !== 1 ||
+        !exports.every(
+          (n) =>
+            ts.isFunctionDeclaration(n) &&
+            n.name?.text === "tamperAudit" &&
+            !ts.getModifiers(n)?.some((m) => m.kind === ts.SyntaxKind.DefaultKeyword),
+        )
+      )
+        add("tamper exports", 0);
+    }
+  }
   if (file.startsWith("src/server/") && !/^import ["']server-only["'];/.test(source))
     add("server-only guard", 0);
   if (file === "src/proxy.ts")
@@ -94,6 +119,37 @@ it("source obeys all architecture guards", () => {
 });
 
 describe("guard self-tests", () => {
+  it("permits raw audit UPDATE only in the single-function tamper demo", () => {
+    const source =
+      'import "server-only"; export async function tamperAudit() { sql`UPDATE audit_log SET "after" = \'{}\'`; }';
+    expect(checkSource("src/server/demo/tamper.ts", source)).toEqual([]);
+    expect(
+      checkSource("src/server/repositories/tamper.ts", source).some(
+        (v) => v.rule === "audit immutability",
+      ),
+    ).toBe(true);
+    for (const extra of [
+      "export const other = 1;",
+      "export { tamperAudit as other };",
+      "export default tamperAudit;",
+    ])
+      expect(
+        checkSource("src/server/demo/tamper.ts", source + extra).some(
+          (v) => v.rule === "tamper exports",
+        ),
+      ).toBe(true);
+    expect(
+      checkSource(
+        "src/server/demo/tamper.ts",
+        'import "server-only"; export async function tamperAudit() { db.update(auditLog); }',
+      ).some((v) => v.rule === "audit immutability"),
+    ).toBe(true);
+    expect(
+      checkSource("src/x.ts", "sql`DELETE FROM audit_log`;").some(
+        (v) => v.rule === "audit immutability",
+      ),
+    ).toBe(true);
+  });
   it("requires the server-only guard at the beginning of every server module", () => {
     expect(checkSource("src/server/x.ts", "export const x = 1;")[0]?.rule).toBe(
       "server-only guard",

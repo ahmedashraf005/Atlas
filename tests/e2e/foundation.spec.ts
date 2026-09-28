@@ -1,10 +1,6 @@
 import { expect, test } from "./fixtures";
 
 const routes = [
-  ["/company", "Company console", 7],
-  ["/company/policy", "Transfer policy", 7],
-  ["/ops", "Operator console", 7],
-  ["/ops/audit", "Audit log", 7],
   ["/under-the-hood", "Under the hood", 8],
   ["/portfolio", "Portfolio", 8],
 ] as const;

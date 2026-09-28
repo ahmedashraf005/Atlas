@@ -207,6 +207,7 @@ export async function getHoldingsModel(viewer: Viewer, dbArg?: Db) {
       return {
         id: l.id,
         ref: l.ref,
+        rejectionReason: l.rejectionReason,
         company: c?.name ?? "—",
         shareClass: classes.find((c) => c.id === l.shareClassId)?.name ?? "—",
         quantity: formatShares(l.quantity, "table"),

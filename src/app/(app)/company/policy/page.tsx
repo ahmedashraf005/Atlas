@@ -1,14 +1,24 @@
-import { ComingSoon } from "@/components/atlas/coming-soon";
+import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/atlas/page-header";
-
+import { getPolicyModel } from "@/server/read/policy";
+import { getViewer } from "@/server/viewer";
+import { PolicyForm } from "./_components/policy-form";
 export const metadata = { title: "Transfer policy" };
-
-// TODO(segment-7): implement transfer policy
-export default function Page() {
+export default async function Page() {
+  const model = await getPolicyModel(await getViewer());
+  if (!model) notFound();
   return (
     <>
-      <PageHeader title="Transfer policy" />
-      <ComingSoon page="Transfer policy" segment={7} />
+      <PageHeader
+        title="Transfer policy"
+        breadcrumbs={[{ label: model.name, href: "/company" }, { label: "Transfer policy" }]}
+        meta={
+          <p className="type-body text-ink-muted">
+            The rules Atlas enforces for your shareholders and buyers.
+          </p>
+        }
+      />
+      <PolicyForm model={model} />
     </>
   );
 }

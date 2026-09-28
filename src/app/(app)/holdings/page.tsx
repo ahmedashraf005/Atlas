@@ -89,6 +89,9 @@ export default async function HoldingsPage() {
                           </StatusBadge>
                         ))}
                       </div>
+                      {l.rejectionReason && (
+                        <p className="type-body-sm text-danger mt-1">{l.rejectionReason}</p>
+                      )}
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap">
                       {l.action?.kind === "review" ? (
