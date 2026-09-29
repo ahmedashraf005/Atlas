@@ -52,6 +52,12 @@ it("invalid flag is rejected without disclosing the value", async () => {
   const { getFlags } = await import("@/env");
   expect(getFlags).toThrow(/^Invalid environment: ATLAS_DEV_UI$/);
 });
+it("production ignores the development flag before parsing its value", async () => {
+  vi.stubEnv("NODE_ENV", "production");
+  vi.stubEnv("ATLAS_DEV_UI", "invalid-secret");
+  const { getFlags } = await import("@/env");
+  expect(getFlags()).toEqual({ devUi: false });
+});
 
 it.each([
   "pglite://memory",
@@ -73,4 +79,13 @@ it.each([
   vi.stubEnv("SESSION_SECRET", "x".repeat(32));
   const { getServerEnv } = await import("@/env");
   expect(getServerEnv).toThrow("Invalid environment: DATABASE_URL");
+});
+it("validates optional public repository links without exposing invalid values", async () => {
+  const { getPublicRepoUrl } = await import("@/env");
+  vi.stubEnv("NEXT_PUBLIC_REPO_URL", undefined);
+  expect(getPublicRepoUrl()).toBeNull();
+  vi.stubEnv("NEXT_PUBLIC_REPO_URL", "https://github.com/example/atlas/");
+  expect(getPublicRepoUrl()).toBe("https://github.com/example/atlas");
+  vi.stubEnv("NEXT_PUBLIC_REPO_URL", "javascript:private-detail");
+  expect(getPublicRepoUrl).toThrow("Invalid environment: NEXT_PUBLIC_REPO_URL");
 });

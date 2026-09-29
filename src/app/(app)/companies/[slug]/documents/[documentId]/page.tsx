@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { getDocumentModel } from "@/server/read/company";
 import { getViewer } from "@/server/viewer";
+export const metadata = { title: "Company document" };
 export default async function Page({
   params,
 }: {

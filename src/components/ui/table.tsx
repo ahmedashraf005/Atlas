@@ -3,13 +3,19 @@ import { cn } from "@/lib/utils";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <section
+      aria-label={props["aria-label"] ?? "Scrollable table"}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard scrolling is required for this labelled overflow region, including Safari.
+      tabIndex={0}
+      data-slot="table-container"
+      className="relative w-full overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+    >
       <table
         data-slot="table"
         className={cn("w-full caption-bottom type-body-sm", className)}
         {...props}
       />
-    </div>
+    </section>
   );
 }
 

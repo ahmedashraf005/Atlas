@@ -29,9 +29,21 @@ export function getServerEnv(): { DATABASE_URL: string; SESSION_SECRET: string }
 }
 
 export function getFlags(): { devUi: boolean } {
+  if (process.env.NODE_ENV === "production") return { devUi: false };
   if (flags) return flags;
   const result = flagsSchema.safeParse(process.env);
   if (!result.success) throw new Error("Invalid environment: ATLAS_DEV_UI");
   flags = { devUi: result.data.ATLAS_DEV_UI === "1" };
   return flags;
+}
+
+export function getPublicRepoUrl(): string | null {
+  const raw = process.env.NEXT_PUBLIC_REPO_URL;
+  if (!raw) return null;
+  const result = z
+    .url()
+    .refine((v) => /^https?:\/\//.test(v))
+    .safeParse(raw);
+  if (!result.success) throw new Error("Invalid environment: NEXT_PUBLIC_REPO_URL");
+  return result.data.replace(/\/$/, "");
 }

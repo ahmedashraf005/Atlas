@@ -2,17 +2,16 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { expect, test } from "./fixtures";
 
-test("production showcase gate is evaluated at runtime and returns HTTP 404", async ({
-  request,
-}) => {
-  // The main test server builds with ATLAS_DEV_UI=1. Reuse that build with the flag off.
+test("production showcase is HTTP 404 even when the old test flag is set", async ({ request }) => {
+  expect((await request.get("/dev/ui")).status()).toBe(404);
+  // Reuse the production build with the old flag on: it must not expose the showcase.
   const server = spawn(
     process.execPath,
     ["node_modules/next/dist/bin/next", "start", "-p", "3101"],
     {
       env: {
         ...process.env,
-        ATLAS_DEV_UI: "0",
+        ATLAS_DEV_UI: "1",
         DATABASE_URL: "pglite://.pglite/e2e-gate",
         SESSION_SECRET: "atlas-e2e-only-session-secret-32-characters",
       },

@@ -50,7 +50,12 @@ export async function executeAction<S extends z.ZodType, T>(
       status: "error",
       error: { code: "UNAUTHENTICATED", message: "Your demo session expired. Reload the page." },
     };
-  const parsed = def.input.safeParse(raw instanceof FormData ? Object.fromEntries(raw) : raw);
+  // Next adds reserved action references to progressive-enhancement forms.
+  const parsed = def.input.safeParse(
+    raw instanceof FormData
+      ? Object.fromEntries([...raw.entries()].filter(([key]) => !key.startsWith("$ACTION_")))
+      : raw,
+  );
   if (!parsed.success)
     return {
       status: "error",

@@ -20,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getFlags } from "@/env";
 import { fixedClock } from "@/lib/clock";
 import { formatMoney, formatShares } from "@/lib/format";
 import tokens from "../../../../../docs/design/tokens.json";
@@ -51,7 +50,7 @@ const statuses: [Tone, string][] = [
 ];
 
 export default function UiPage() {
-  if (process.env.NODE_ENV === "production" && !getFlags().devUi) notFound();
+  if (process.env.NODE_ENV === "production") notFound();
   const clock = fixedClock("2026-09-25T10:30:00Z");
   const now = clock.now();
   const at = (hours: number) => new Date(now.getTime() + hours * 3600000);
@@ -236,7 +235,6 @@ export default function UiPage() {
                   </StatusBadge>
                 </TableCell>
                 <TableCell className="text-right">
-                  {/* TODO(segment-5): respond to counter */}
                   <Button size="sm" disabled>
                     Respond
                   </Button>
@@ -273,7 +271,6 @@ export default function UiPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    {/* TODO(segment-5): place a bid */}
                     <Button variant="secondary" size="sm" disabled>
                       Bid
                     </Button>

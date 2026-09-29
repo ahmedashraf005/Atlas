@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { getCreateListingModel } from "@/server/read/create-listing";
 import { getViewer } from "@/server/viewer";
 import { CreateListingForm } from "./_components/create-listing-form";
+export const metadata = { title: "List shares" };
 export default async function CreateListingPage({ params }: { params: Promise<{ id: string }> }) {
   const model = await getCreateListingModel(await getViewer(), (await params).id);
   if (!model) notFound();

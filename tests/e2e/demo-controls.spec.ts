@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { expect, test, watchBrowserPage } from "./fixtures";
 
 async function switchTo(page: import("@playwright/test").Page, label: string) {
   await page.getByRole("combobox", { name: "View as" }).click();
@@ -114,6 +114,7 @@ test("separate browser contexts keep persona and time isolated", async ({ page, 
   const other = await browser.newContext();
   try {
     const second = await other.newPage();
+    const verifySecond = await watchBrowserPage(second);
     await second.goto("/discover");
     const original = parseTime(await timeText(second).innerText());
     await switchTo(page, "Seller · Holder #S-214");
@@ -128,6 +129,7 @@ test("separate browser contexts keep persona and time isolated", async ({ page, 
     expect((await other.cookies()).find((c) => c.name === "atlas_session")?.value).not.toBe(
       (await page.context().cookies()).find((c) => c.name === "atlas_session")?.value,
     );
+    await verifySecond();
   } finally {
     await other.close();
   }

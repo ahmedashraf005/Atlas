@@ -5,10 +5,11 @@ import { Logo } from "@/components/atlas/logo";
 import { StatusBadge } from "@/components/atlas/status-badge";
 import { switchPersona } from "@/components/shell/demo-actions";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
+import { StartTourButton, TourPanel } from "@/components/shell/tour-panel";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getLandingModel } from "@/server/read/landing";
 import { getViewer } from "@/server/viewer";
+export const metadata = { title: "Private shares, settled properly" };
 export default async function Landing() {
   const viewer = await getViewer(),
     cards = getLandingModel(viewer);
@@ -60,19 +61,7 @@ export default async function Landing() {
           <Button asChild>
             <Link href="/discover">Enter the demo</Link>
           </Button>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring">
-                  <Button variant="secondary" disabled>
-                    Start guided tour
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Available from segment 8</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          {/* TODO(segment-8): guided tour */}
+          <StartTourButton />
           <Button variant="link" asChild>
             <Link href="/under-the-hood">How it works under the hood</Link>
           </Button>
@@ -92,6 +81,7 @@ export default async function Landing() {
           </span>
         </footer>
       </div>
+      <TourPanel persona={viewer.persona} />
     </main>
   );
 }

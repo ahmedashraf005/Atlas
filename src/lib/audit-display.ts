@@ -1,6 +1,8 @@
 import type { AuditEntry, Json } from "@/domain/audit";
 
 export const ACTION_LABELS: Record<string, string> = {
+  "notifications.markRead": "Notification read",
+  "notifications.markAllRead": "Notifications read",
   "holding.verify": "Holding verified",
   "holding.reject": "Holding rejected",
   "listing.approve": "Listing approved",

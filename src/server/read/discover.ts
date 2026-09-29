@@ -13,6 +13,7 @@ const schema = z.object({
   stage: z.string().optional(),
   open: z.string().optional(),
   matches: z.string().optional(),
+  matchesMandates: z.string().optional(),
 });
 export async function getDiscoverModel(viewer: Viewer, raw: unknown = {}, dbArg?: Db) {
   const db = dbArg ?? (await getDb());
@@ -31,7 +32,8 @@ export async function getDiscoverModel(viewer: Viewer, raw: unknown = {}, dbArg?
     sector: sectors.includes(q.sector ?? "") ? (q.sector ?? "") : "",
     stage: stages.includes(q.stage ?? "") ? (q.stage ?? "") : "",
     open: q.open === "on",
-    matches: q.matches === "on",
+    // Keep existing shared links working; the form name must not shadow HTMLFormElement.matches().
+    matches: (q.matchesMandates ?? q.matches) === "on",
   };
   const rows = await Promise.all(
     all.map(async (c) => {
