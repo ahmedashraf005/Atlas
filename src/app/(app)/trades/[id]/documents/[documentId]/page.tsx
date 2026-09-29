@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { getTradeDocumentModel } from "@/server/read/trades";
 import { getViewer } from "@/server/viewer";
+export const metadata = { title: "Trade document" };
 export default async function Page({
   params,
 }: {

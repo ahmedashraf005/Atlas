@@ -95,7 +95,7 @@ export default async function Page({
               <label className="flex items-center gap-2 type-body-sm">
                 <input
                   type="checkbox"
-                  name="matches"
+                  name="matchesMandates"
                   defaultChecked={model.filters.matches}
                   className="accent-atlas-green"
                 />

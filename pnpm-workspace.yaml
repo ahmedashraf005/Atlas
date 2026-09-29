@@ -3,3 +3,5 @@ allowBuilds:
   esbuild: true
   sharp: false
   unrs-resolver: false
+overrides:
+  'lodash-es@<4.17.24': 4.18.1

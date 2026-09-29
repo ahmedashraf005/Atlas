@@ -147,7 +147,12 @@ export function DemoControls({
   );
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <div className="hidden min-w-0 items-center gap-2 overflow-x-auto py-1 lg:flex">
+      <section
+        aria-label="Persona and time controls"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard scrolling is required for this labelled overflow region, including Safari.
+        tabIndex={0}
+        className="hidden min-w-0 items-center gap-2 overflow-x-auto py-1 lg:flex focus-visible:outline-2 focus-visible:outline-focus-ring"
+      >
         <label htmlFor="persona" className="shrink-0 whitespace-nowrap type-label text-ink-muted">
           View as
         </label>
@@ -179,7 +184,7 @@ export function DemoControls({
             +{hours / 24} {hours === 24 ? "day" : "days"}
           </Button>
         ))}
-      </div>
+      </section>
       {more(false)}
       {more(true)}
       <span className="hidden lg:inline-flex">{reset}</span>

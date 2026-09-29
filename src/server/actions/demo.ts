@@ -4,6 +4,7 @@ import { z } from "zod";
 import { PERSONAS, type PersonaKey, personaSchema } from "@/config/personas";
 import { type Action, authorize } from "@/domain/authz";
 import { ok } from "@/domain/result";
+import { allowedNextPath } from "@/lib/tour";
 import { type ActionState, defineAction } from "@/server/actions/pipeline";
 import { appendAudit } from "@/server/audit";
 import { sandboxClock } from "@/server/clock";
@@ -21,11 +22,11 @@ const revalidate = ["/"];
 async function auditChange(ctx: TxContext, action: string, before: unknown, after: unknown) {
   await appendAudit(ctx, { action, entity: "sandbox", entityId: ctx.sandbox.id, before, after });
 }
-const switchAction = defineAction({
+export const switchPersonaDef = {
   name: "sandbox.switchPersona",
-  input: z.object({ persona: personaSchema }),
+  input: z.strictObject({ persona: personaSchema, next: z.string().optional() }),
   revalidate,
-  handler: async (ctx, input) => {
+  handler: async (ctx: TxContext, input: { persona: PersonaKey; next?: string }) => {
     const auth = allow(ctx, "sandbox.switchPersona");
     if (!auth.ok) return auth;
     const before = ctx.sandbox.persona;
@@ -36,17 +37,24 @@ const switchAction = defineAction({
       { persona: before },
       { persona: input.persona },
     );
-    return ok({ sid: ctx.sandbox.id, per: input.persona });
+    return ok<{ sid: string; per: PersonaKey; next?: string | null }>({
+      sid: ctx.sandbox.id,
+      per: input.persona,
+      next: allowedNextPath(input.next),
+    });
   },
-});
+};
+const switchAction = defineAction(switchPersonaDef);
 export async function switchPersona(
   prev: ActionState<{ sid: string; per: PersonaKey }>,
-  input: { persona: PersonaKey } | FormData,
+  input: { persona: PersonaKey; next?: string } | FormData,
 ) {
   const state = await switchAction(prev, input);
   if (state.status === "success") {
     await writeSession(state.data);
-    redirect(PERSONAS.find((p) => p.key === state.data.per)?.home ?? "/discover");
+    redirect(
+      state.data.next ?? PERSONAS.find((p) => p.key === state.data.per)?.home ?? "/discover",
+    );
   }
   return state;
 }

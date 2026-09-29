@@ -9,6 +9,7 @@ import { getViewer } from "@/server/viewer";
 import { AddHoldingDialog } from "./_components/add-holding-dialog";
 import { HoldingCard } from "./_components/holding-card";
 import { WithdrawListing } from "./_components/withdraw-listing";
+export const metadata = { title: "Holdings" };
 export default async function HoldingsPage() {
   const model = await getHoldingsModel(await getViewer());
   const add = model.canAdd ? (

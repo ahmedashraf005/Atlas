@@ -98,7 +98,13 @@ export function checkSource(file: string, source: string): Violation[] {
     add("server-only guard", 0);
   if (file === "src/proxy.ts")
     scan("proxy database dependency", /(?:@\/server\/db|\.\/server\/db)/g);
-  if (inSrc) scan("unsafe HTML", /dangerouslySetInnerHTML/g);
+  if (inSrc && file !== "src/app/(app)/under-the-hood/_components/mermaid-diagram.tsx")
+    scan("unsafe HTML", /dangerouslySetInnerHTML/g);
+  if (
+    file === "src/app/(app)/under-the-hood/_components/mermaid-diagram.tsx" &&
+    (!/securityLevel:\s*["']strict["']/.test(source) || !/import\(["']mermaid["']\)/.test(source))
+  )
+    add("mermaid sanitization", 0);
   if (file.startsWith("src/domain/")) {
     scan("domain numeric parsing", /\b(?:Number|parseFloat|parseInt)\s*\(/g);
     scan("domain console", /\bconsole\s*\./g);
@@ -119,6 +125,20 @@ it("source obeys all architecture guards", () => {
 });
 
 describe("guard self-tests", () => {
+  it("allows generated SVG only in the strict Mermaid renderer", () => {
+    const file = "src/app/(app)/under-the-hood/_components/mermaid-diagram.tsx";
+    const source =
+      'const m = import("mermaid"); m.initialize({ securityLevel: "strict" }); <div dangerouslySetInnerHTML={{__html: svg}} />';
+    expect(checkSource(file, source)).toEqual([]);
+    expect(
+      checkSource("src/components/mermaid.tsx", source).some((v) => v.rule === "unsafe HTML"),
+    ).toBe(true);
+    expect(
+      checkSource(file, source.replace('"strict"', '"loose"')).some(
+        (v) => v.rule === "mermaid sanitization",
+      ),
+    ).toBe(true);
+  });
   it("permits raw audit UPDATE only in the single-function tamper demo", () => {
     const source =
       'import "server-only"; export async function tamperAudit() { sql`UPDATE audit_log SET "after" = \'{}\'`; }';

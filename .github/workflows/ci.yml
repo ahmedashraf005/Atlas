@@ -12,6 +12,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --prod --audit-level high
       - run: pnpm db:generate && git diff --exit-code drizzle/
       - run: pnpm check
       - run: pnpm exec playwright install --with-deps chromium

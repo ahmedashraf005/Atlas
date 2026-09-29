@@ -11,7 +11,7 @@ it("labels every machine event and every non-transition audit action in the serv
   for (const file of globSync("src/server/**/*.ts")) {
     const source = readFileSync(file, "utf8");
     for (const match of source.matchAll(
-      /(?:action|name):\s*["']((?:holding|listing|bid|trade|company|policy|sandbox|audit|demo)\.[^"']+)["']/g,
+      /(?:action|name):\s*["']((?:holding|listing|bid|trade|company|policy|sandbox|audit|demo|notifications)\.[^"']+)["']/g,
     ))
       actions.push(match[1] as string);
     for (const match of source.matchAll(/(?:eventAction|reasonAction)\(\s*["']([^"']+)["']/g))

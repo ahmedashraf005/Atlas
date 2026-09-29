@@ -12,6 +12,7 @@ import { TradeMore } from "./_components/actions";
 import { Messages } from "./_components/messages";
 import { NextStep, PaymentInstructions } from "./_components/next-step";
 import { Timeline } from "./_components/timeline";
+export const metadata = { title: "Trade room" };
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params,
     model = await getTradeRoomModel(await getViewer(), id);

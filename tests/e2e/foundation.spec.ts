@@ -1,9 +1,6 @@
 import { expect, test } from "./fixtures";
 
-const routes = [
-  ["/under-the-hood", "Under the hood", 8],
-  ["/portfolio", "Portfolio", 8],
-] as const;
+const showcaseUrl = `http://localhost:${Number(process.env.E2E_PORT ?? 3100) + 2}/dev/ui`;
 
 test("landing enters the demo", async ({ page }) => {
   await page.goto("/");
@@ -15,18 +12,8 @@ test("landing enters the demo", async ({ page }) => {
   await expect(page).toHaveURL("/discover");
 });
 
-for (const [route, name, segment] of routes) {
-  test(`placeholder ${route}`, async ({ page }) => {
-    const response = await page.goto(route);
-    expect(response?.status()).toBe(200);
-    await expect(page.getByRole("navigation", { name: "Main", exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name, level: 1, exact: true })).toBeVisible();
-    await expect(page.getByText(`This page is built in segment ${segment}.`)).toBeVisible();
-  });
-}
-
 test("showcase includes all eleven sections in both themes", async ({ page }) => {
-  await page.goto("/dev/ui");
+  await page.goto(showcaseUrl);
   const figureColumns = await page
     .locator("#figures .grid")
     .evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" "));
@@ -73,6 +60,7 @@ test("six security headers and no powered-by header", async ({ page }) => {
     "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
     "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
     "cross-origin-opener-policy": "same-origin",
+    "x-robots-tag": "noindex, nofollow",
   });
   expect(headers).not.toHaveProperty("x-powered-by");
 });
@@ -106,7 +94,7 @@ test("mobile sheet navigation and demo controls work without overflow", async ({
     page.getByRole("menuitem", { name: "Simulate competing bid", exact: true }),
   ).toBeEnabled();
   await page.keyboard.press("Escape");
-  await page.goto("/dev/ui");
+  await page.goto(showcaseUrl);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
@@ -114,6 +102,7 @@ test("mobile sheet navigation and demo controls work without overflow", async ({
 
 test("first Tab reaches skip link and activation focuses main", async ({ page }) => {
   await page.goto("/discover");
+  await expect(page.getByRole("navigation", { name: "Main", exact: true })).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
   await page.keyboard.press("Enter");
@@ -129,7 +118,7 @@ test("day controls are enabled and keyboard focusable", async ({ page }) => {
 });
 
 test("confirmation starts on cancel; overlays and form controls are usable", async ({ page }) => {
-  await page.goto("/dev/ui");
+  await page.goto(showcaseUrl);
   await page.getByRole("button", { name: "Confirm example", exact: true }).click();
   await expect(page.getByRole("button", { name: "Cancel", exact: true })).toBeFocused();
   await page.getByRole("button", { name: "Confirm", exact: true }).click();
@@ -161,7 +150,7 @@ test("confirmation starts on cancel; overlays and form controls are usable", asy
 });
 
 test("Tailwind colour keywords survive the Atlas palette reset", async ({ page }) => {
-  await page.goto("/dev/ui");
+  await page.goto(showcaseUrl);
   const computed = await page.evaluate(() => {
     const probe = document.createElement("div");
     probe.className = "bg-transparent text-current border-transparent border";

@@ -1,0 +1,41 @@
+export const NOTIFICATION_TEXTS: Record<string, (ref: string) => string> = {
+  bid_received: (r) => `New sealed bid on ${r}`,
+  countered: (r) => `The seller countered your bid on ${r}`,
+  counter_accepted: (r) => `A buyer accepted your counter on ${r}`,
+  counter_declined: (r) => `A buyer declined your counter on ${r}`,
+  counter_lapsed: (r) => `A counter response deadline passed on ${r}`,
+  bid_accepted: (r) => `Your bid on ${r} was accepted`,
+  bid_backup: (r) => `Your bid on ${r} is a backup`,
+  bid_rejected: (r) => `Your bid on ${r} was not selected`,
+  holding_verification_requested: () => "A holding needs company verification",
+  holding_verified: () => "Your holding was verified by the company",
+  holding_rejected: () => "The company rejected your holding",
+  listing_review_requested: (r) => `${r} is waiting for Atlas review`,
+  listing_live: (r) => `${r} is live`,
+  listing_rejected: (r) => `${r} was rejected by Atlas`,
+  window_closed: (r) => `The bid window on ${r} closed`,
+  listing_expired: (r) => `${r} expired`,
+  counterparty_signed: (r) => `The other party signed the agreement for ${r}`,
+  rofr_notice: (r) => `Decide on the right of first refusal for ${r}`,
+  funds_due: (r) => `Payment into escrow is due for ${r}`,
+  rofr_waived: (r) => `The company waived its right of first refusal for ${r}`,
+  rofr_exercised: (r) => `The company exercised its right of first refusal for ${r}`,
+  trade_cancelled: (r) => `${r} was cancelled`,
+  wire_sent: (r) => `The buyer marked the wire sent for ${r}`,
+  register_update_due: (r) => `Update the register for ${r}`,
+  funds_confirmed: (r) => `Funds are confirmed in escrow for ${r}`,
+  release_due: (r) => `Release approval is due for ${r}`,
+  settled: (r) => `${r} settled`,
+  dispute_raised: (r) => `A dispute was raised on ${r}`,
+  dispute_resolved: (r) => `A dispute was resolved on ${r}`,
+  access_requested: (r) => `A buyer requested access to ${r}`,
+  access_approved: (r) => `Access to ${r} was approved`,
+  access_denied: (r) => `Access to ${r} was not granted`,
+  question_asked: (r) => `A buyer asked a question about ${r}`,
+  question_answered: (r) => `The company answered your question about ${r}`,
+};
+export function notificationText(template: string, ref: string, entity: string): string {
+  return Object.hasOwn(NOTIFICATION_TEXTS, template)
+    ? (NOTIFICATION_TEXTS[template] as (ref: string) => string)(ref)
+    : `Update on ${entity}`;
+}

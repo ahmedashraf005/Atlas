@@ -26,6 +26,7 @@ async function persona(page: Page, role: "company_admin" | "operator" | "seller"
   );
 }
 async function autopilotOff(page: Page) {
+  await expect(page.getByRole("combobox", { name: "View as", exact: true })).toBeVisible();
   const on = page.getByRole("button", { name: "Auto-pilot on", exact: true });
   if (await on.count()) await on.click();
   await expect(page.getByRole("button", { name: "Auto-pilot off", exact: true })).toBeVisible();
