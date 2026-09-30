@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 // Mermaid has global configuration: serialize rendering so different diagrams/themes cannot race.
 let renderQueue: Promise<unknown> = Promise.resolve();
@@ -7,42 +9,47 @@ export function MermaidDiagram({ text, label }: { text: string; label: string })
   const id = useId().replace(/[^a-zA-Z0-9]/g, ""),
     [svg, setSvg] = useState(""),
     [error, setError] = useState(false),
+    [fullSize, setFullSize] = useState(false),
     [theme, setTheme] = useState("");
   const drawing = useRef<HTMLDivElement>(null),
-    scroller = useRef<HTMLElement>(null);
+    fullDrawing = useRef<HTMLDivElement>(null),
+    fullScroller = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     if (!svg) return;
-    const element = drawing.current?.querySelector("svg");
-    if (!element) return;
-    // Geometry must be synchronous, including the global reduced-motion transition duration.
-    element.style.transition = "none";
-    // Mermaid measures in a temporary container. Fit the actual mounted content before paint.
-    const bounds = element.getBBox(),
-      padding = 12,
-      width = bounds.width + padding * 2,
-      height = bounds.height + padding * 2;
-    element.setAttribute(
-      "viewBox",
-      `${bounds.x - padding} ${bounds.y - padding} ${width} ${height}`,
-    );
-    element.style.maxWidth = `${width}px`;
-    // Keep labels readable; the surrounding region scrolls wide diagrams on small screens.
-    element.setAttribute("width", String(width));
-    const firstNode = element.querySelector(".state-start, .node"),
-      region = scroller.current;
-    if (firstNode && region) {
-      const start = firstNode.getBoundingClientRect();
-      region.scrollLeft = Math.max(
-        0,
-        region.scrollLeft +
-          start.left +
-          start.width / 2 -
-          region.getBoundingClientRect().left -
-          region.clientWidth / 2,
+    let frame: number | null = null;
+    const layout = () => {
+      const element = (fullSize ? fullDrawing : drawing).current?.querySelector("svg");
+      if (!element) {
+        frame = requestAnimationFrame(layout);
+        return;
+      }
+      // Geometry must be synchronous, including the global reduced-motion transition duration.
+      element.style.transition = "none";
+      // Mermaid measures in a temporary container. Fit the actual mounted content before paint.
+      const bounds = element.getBBox(),
+        padding = 12,
+        width = bounds.width + padding * 2,
+        height = bounds.height + padding * 2;
+      element.setAttribute(
+        "viewBox",
+        `${bounds.x - padding} ${bounds.y - padding} ${width} ${height}`,
       );
-    }
-    element.setAttribute("data-layout-ready", "true");
-  }, [svg]);
+      element.style.maxWidth = "none";
+      element.style.width = fullSize ? `${width}px` : "100%";
+      element.style.height = "auto";
+      element.setAttribute("preserveAspectRatio", "xMinYMin meet");
+      element.setAttribute("width", String(width));
+      if (fullSize && fullScroller.current) {
+        fullScroller.current.scrollLeft = 0;
+        fullScroller.current.scrollTop = 0;
+      }
+      element.setAttribute("data-layout-ready", "true");
+    };
+    layout();
+    return () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
+  }, [svg, fullSize]);
   useEffect(() => {
     const update = () => setTheme(document.documentElement.dataset.theme ?? "light");
     update();
@@ -72,7 +79,7 @@ export function MermaidDiagram({ text, label }: { text: string; label: string })
           theme: "base",
           htmlLabels: false,
           fontFamily: getComputedStyle(document.body).fontFamily,
-          state: { wrappingWidth: 320 },
+          state: { wrappingWidth: 1000, nodeSpacing: 90, rankSpacing: 110 },
           themeVariables: {
             darkMode: theme === "dark",
             background: colour("surface"),
@@ -105,29 +112,56 @@ export function MermaidDiagram({ text, label }: { text: string; label: string })
     };
   }, [text, id, theme]);
   return (
-    <section
-      ref={scroller}
-      aria-label={`${label} diagram`}
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard scrolling is required for this labelled overflow region, including Safari.
-      tabIndex={0}
-      className="min-w-0 overflow-x-auto focus-visible:outline-2 focus-visible:outline-focus-ring"
-    >
+    <div className="min-w-0">
       <div className="min-w-0" role="img" aria-label={label} data-theme-rendered={theme}>
         {error ? (
           <p className="type-body-sm text-danger">
             The diagram could not be drawn. The transition table below lists the same rules.
           </p>
-        ) : svg ? (
+        ) : svg && !fullSize ? (
           <div
             ref={drawing}
-            className="[&_svg]:h-auto"
+            className="min-w-0 [&_svg]:block"
             // biome-ignore lint/security/noDangerouslySetInnerHtml: only our generated diagrams, sanitized by Mermaid strict mode.
             dangerouslySetInnerHTML={{ __html: svg }}
           />
-        ) : (
+        ) : !fullSize ? (
           <output className="type-body-sm text-ink-muted">Drawing diagram…</output>
-        )}
+        ) : null}
       </div>
-    </section>
+      {svg && !error && (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="mt-3"
+          onClick={() => setFullSize(true)}
+        >
+          Open full size
+        </Button>
+      )}
+      <Dialog open={fullSize} onOpenChange={setFullSize}>
+        <DialogContent className="flex h-[85vh] w-[90vw] max-w-[90vw] flex-col sm:max-w-[90vw]">
+          <DialogTitle>{label}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Scroll to inspect the full-size diagram.
+          </DialogDescription>
+          <section
+            ref={fullScroller}
+            className="min-h-0 flex-1 overflow-auto"
+            aria-label={`${label} full size`}
+          >
+            {fullSize && (
+              <div
+                ref={fullDrawing}
+                className="w-max [&_svg]:block"
+                // biome-ignore lint/security/noDangerouslySetInnerHtml: only our generated diagrams, sanitized by Mermaid strict mode.
+                dangerouslySetInnerHTML={{ __html: svg }}
+              />
+            )}
+          </section>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import "server-only";
+import type { PersonaKey } from "@/config/personas";
 import { sources } from "@/domain/machine";
 import { MACHINES } from "@/domain/machines";
 import { toMermaid } from "@/domain/mermaid";
@@ -24,14 +25,16 @@ export const ARCHITECTURE_FACTS = [
 export async function getUnderTheHoodModel(viewer: Viewer, database?: Database) {
   const db = database ?? (await getDb()),
     repoUrl = getPublicRepoUrl();
-  const [ls, ts] = await Promise.all([
+  const [ls, ts, buyerBTrade] = await Promise.all([
     discovery.publicListings(db, viewer.sandboxId),
     trades.visibleRows(db, viewer.sandboxId, viewer.actor),
+    trades.findByRef(db, viewer.sandboxId, "T-1042"),
   ]);
-  const listing = ls.find((l) => l.status === "Live"),
+  const listing = ls.find((l) => l.ref === "L-2031"),
     trade = ts.find((t) => t.status !== "Settled") ?? ts[0];
   const listingHref = listing ? `/listings/${listing.id}` : "/holdings",
-    tradeHref = trade ? `/trades/${trade.id}` : "/trades";
+    tradeHref = trade ? `/trades/${trade.id}` : "/trades",
+    buyerBTradeHref = buyerBTrade ? `/trades/${buyerBTrade.id}` : "/trades";
   const diagrams = {
     holding: toMermaid(MACHINES.holding),
     listing: toMermaid(MACHINES.listing),
@@ -89,56 +92,64 @@ export async function getUnderTheHoodModel(viewer: Viewer, database?: Database) 
         threat: "Fake holdings",
         control: "Company verification",
         href: "/company",
-        see: "Company console",
+        see: "See it as Company",
+        persona: "company_admin",
       },
       {
         threat: "Double-selling",
         control: "Share reservation and database CHECK",
         href: "/holdings",
-        see: "Listed or in trades",
+        see: "See it as Seller",
+        persona: "seller",
       },
       {
         threat: "Shill bidding",
         control:
           "A seller cannot sell to an organisation they beneficially own. createBid enforces the related-party block.",
-        href: "#security",
-        see: "Related-party rule",
+        href: null,
+        see: "Rule enforced in createBid",
       },
       {
         threat: "Wash trades",
         control: "Related-party prints excluded",
         href: "/companies/falaj-robotics",
-        see: "Company chart note",
+        see: "See it as Buyer A",
+        persona: "buyer_a",
       },
       {
         threat: "Bid leakage",
         control: "Sealed bids until the window closes",
         href: listingHref,
-        see: "Live listing",
+        see: "See it as Seller",
+        persona: "seller",
       },
       {
         threat: "Wire fraud",
         control: "Locked payment instructions and message warnings",
-        href: tradeHref,
-        see: "Trade room",
+        href: buyerBTradeHref,
+        see: "See it as Buyer B",
+        persona: "buyer_b",
       },
       {
         threat: "Buyer default",
         control: "Funding deadline and backup bid",
-        href: tradeHref,
-        see: "Trade room and listing",
+        href: buyerBTradeHref,
+        see: "See it as Buyer B",
+        persona: "buyer_b",
       },
       {
         threat: "Account takeover",
         control: "Simulated passkey step-up confirmation",
-        href: tradeHref,
-        see: "Trade room",
+        href: buyerBTradeHref,
+        see: "See it as Buyer B",
+        persona: "buyer_b",
       },
       {
         threat: "Insider abuse",
         control: "Two-operator release and hash-chained audit",
         href: "/ops/audit",
-        see: "Audit log",
+        see: "See it as Operator",
+        persona: "operator",
       },
       {
         threat: "Malicious uploads",
@@ -146,7 +157,13 @@ export async function getUnderTheHoodModel(viewer: Viewer, database?: Database) 
         href: null,
         see: "",
       },
-    ],
+    ] satisfies {
+      threat: string;
+      control: string;
+      href: string | null;
+      see: string;
+      persona?: PersonaKey;
+    }[],
     architecture: ARCHITECTURE,
     facts: ARCHITECTURE_FACTS,
     repoUrl,

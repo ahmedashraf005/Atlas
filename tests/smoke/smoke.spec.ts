@@ -24,6 +24,11 @@ test("post-deploy read-mostly product and security smoke", async ({ page }) => {
         })(),
       );
   });
+  const health = await page.request.get("/api/health");
+  expect(health.ok()).toBe(true);
+  expect(await health.json()).toEqual({ ok: true });
+  expect(health.headers()["cache-control"]).toContain("no-store");
+  expect(health.headers()["set-cookie"]).toBeUndefined();
   const landing = await page.goto("/");
   expect(landing?.headers()).toMatchObject({
     "x-content-type-options": "nosniff",

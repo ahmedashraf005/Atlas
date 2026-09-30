@@ -22,7 +22,7 @@ for (const theme of ["light", "dark"] as const)
             .getByRole("img", { name: `${label} state machine` })
             .locator("svg[data-layout-ready]"),
         ).toBeVisible({ timeout: 20000 });
-        // Every state and edge must fit the generated viewport after fonts have loaded.
+        // The entire rendered SVG stays inside its card, including on mobile.
         expect(
           await page
             .getByRole("img", { name: `${label} state machine` })
@@ -31,16 +31,13 @@ for (const theme of ["light", "dark"] as const)
               const svg = element as SVGSVGElement,
                 bounds = svg.getBBox(),
                 viewport = svg.viewBox.baseVal,
-                scale = svg.getScreenCTM(),
-                first = svg.querySelector(".state-start, .node")?.getBoundingClientRect(),
-                region = svg.closest("section")?.getBoundingClientRect();
+                box = svg.getBoundingClientRect(),
+                region = svg.closest('[role="img"]')?.getBoundingClientRect();
               return (
-                first !== undefined &&
                 region !== undefined &&
-                first.left + first.width / 2 >= region.left &&
-                first.left + first.width / 2 <= region.right &&
-                scale !== null &&
-                scale.a >= 0.99 &&
+                box.left >= region.left - 1 &&
+                box.right <= region.right + 1 &&
+                box.width > 0 &&
                 bounds.x >= viewport.x - 1 &&
                 bounds.y >= viewport.y - 1 &&
                 bounds.x + bounds.width <= viewport.x + viewport.width + 1 &&

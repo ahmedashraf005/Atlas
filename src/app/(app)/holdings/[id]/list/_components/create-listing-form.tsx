@@ -93,7 +93,9 @@ export function CreateListingForm({ model }: { model: CreateListingModel }) {
             e.preventDefault();
             const next = validateListing(values, model);
             setIssues(next);
-            if (!Object.keys(next).length) setReview(true);
+            const first = fields.find((field) => next[field.key]);
+            if (first) document.getElementById(`${id}-${first.key}`)?.focus();
+            else setReview(true);
           }}
           className="space-y-5"
         >
@@ -109,7 +111,17 @@ export function CreateListingForm({ model }: { model: CreateListingModel }) {
                   inputMode={field.key === "reservePrice" ? "decimal" : "numeric"}
                   value={values[field.key]}
                   onChange={(e) => change(field.key, e.target.value)}
+                  onBlur={() =>
+                    setIssues((current) => {
+                      const next = { ...current },
+                        issue = validateListing(values, model)[field.key];
+                      if (issue) next[field.key] = issue;
+                      else delete next[field.key];
+                      return next;
+                    })
+                  }
                   aria-invalid={!!issues[field.key]}
+                  className={issues[field.key] ? "border-danger" : undefined}
                   aria-describedby={`${id}-${field.key}-help${issues[field.key] ? ` ${id}-${field.key}-error` : ""}`}
                 />
               </div>

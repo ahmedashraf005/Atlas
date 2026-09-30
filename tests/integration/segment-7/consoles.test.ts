@@ -124,7 +124,8 @@ const errorCode = (r: { status: string; error?: { code: string } }) => r.error?.
 it("company seed queue and figures are exact, private activity snapshots excluded", async () => {
   await settings({ autopilot: true });
   const model = await getCompanyConsoleModel(await viewer(), db);
-  expect(model?.figures.map((f) => f.value)).toEqual(["2", "2", "1", "AED 143,200"]);
+  expect(model?.figures.map((f) => f.value)).toEqual(["2", "2", "1", "AED 528,600"]);
+  expect(model?.figures[3]?.caption).toBe("6 trades");
   expect(model?.decisions.map((d) => [d.kind, d.title])).toEqual([
     ["rofr", "Right of first refusal · T-1042"],
     ["question", "Question from Investor #B-204"],

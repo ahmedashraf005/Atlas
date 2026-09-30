@@ -79,11 +79,24 @@ test("company admin acts manually with autopilot off", async ({ page }) => {
 });
 test("operator supplies the distinct second approval after autopilot", async ({ page }) => {
   test.setTimeout(90000);
+  await persona(page, "buyer_b");
+  await room(page);
+  await expect(page.getByLabel("Locked payment instructions")).toBeVisible({ timeout: 30000 });
+  await passkey(page, "I've sent the wire");
+  await expect(
+    page.getByText("Waiting on Falaj Robotics to update the share register.", { exact: true }),
+  ).toBeVisible({ timeout: 30000 });
+  await page.getByRole("button", { name: "Auto-pilot on", exact: true }).click();
+  await persona(page, "company_admin");
+  await room(page);
+  await page.getByRole("button", { name: "Upload register extract", exact: true }).click();
+  await confirm(page, "Upload the register extract?", "Upload register extract");
   await persona(page, "operator");
   await room(page);
   await expect(page.getByRole("main").getByText("Awaiting release", { exact: true })).toBeVisible({
-    timeout: 45000,
+    timeout: 15000,
   });
+  await page.getByRole("button", { name: "Auto-pilot off", exact: true }).click();
   await expect(
     page.locator('[data-step="released"]').getByText(/Tariq Mansour.*auto-pilot/),
   ).toBeVisible();

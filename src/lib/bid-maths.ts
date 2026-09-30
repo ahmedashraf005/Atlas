@@ -14,6 +14,36 @@ export interface BandInput {
   high: string;
   estimate: boolean;
 }
+export type BidFormValues = { price: string; quantity: string; minFill: string; rationale: string };
+export function validateBidForm(
+  values: BidFormValues,
+  listing: { minFillRaw: string; quantityRaw: string },
+): Partial<Record<keyof BidFormValues, string>> {
+  const issues: Partial<Record<keyof BidFormValues, string>> = {};
+  const price = parseMoneyInput(values.price);
+  const quantity = parseSharesInput(values.quantity);
+  const minFill = parseSharesInput(values.minFill);
+  const minimum = BigInt(listing.minFillRaw);
+  const maximum = BigInt(listing.quantityRaw);
+  if (!price.ok) issues.price = price.error.issues?.[0]?.message ?? "Enter a valid price.";
+  if (!quantity.ok)
+    issues.quantity = quantity.error.issues?.[0]?.message ?? "Enter a valid quantity.";
+  else if (quantity.value < minimum)
+    issues.quantity = `Minimum for this listing is ${formatShares(minimum, "table")}.`;
+  else if (quantity.value > maximum)
+    issues.quantity = `This listing offers ${formatShares(maximum, "table")}.`;
+  if (!minFill.ok)
+    issues.minFill = minFill.error.issues?.[0]?.message ?? "Enter a valid minimum fill.";
+  else if (minFill.value < minimum)
+    issues.minFill = `Minimum for this listing is ${formatShares(minimum, "table")}.`;
+  else if (minFill.value > maximum)
+    issues.minFill = `This listing offers ${formatShares(maximum, "table")}.`;
+  else if (quantity.ok && minFill.value > quantity.value)
+    issues.minFill = "Minimum fill can't exceed the bid quantity.";
+  if (values.rationale.length > 500)
+    issues.rationale = "Keep the rationale to 500 characters or fewer.";
+  return issues;
+}
 export function competingPrice(base: bigint, count: number) {
   return applyBps(base, 10000 + ([150, -100, 300, 50][count % 4] ?? 150));
 }

@@ -12,6 +12,7 @@ import * as consoles from "@/server/repositories/consoles";
 import * as discovery from "@/server/repositories/discovery";
 import * as grants from "@/server/repositories/grants";
 import * as holdings from "@/server/repositories/holdings";
+import * as prints from "@/server/repositories/prints";
 import * as qa from "@/server/repositories/qa";
 import * as trades from "@/server/repositories/trades";
 import * as users from "@/server/repositories/users";
@@ -207,15 +208,16 @@ export async function getCompanyConsoleModel(viewer: Viewer, database?: Db) {
       a.deadline - b.deadline || a.created - b.created || a.item.id.localeCompare(b.item.id),
   );
   const since = viewer.now.getTime() - 180 * 86400000;
-  const settled = ts
-    .filter(
-      (t) =>
-        t.status === "Settled" &&
-        t.settledAt &&
-        t.settledAt.getTime() >= since &&
-        t.settledAt <= viewer.now,
-    )
-    .reduce((sum, t) => sum + t.quantity * t.priceMinor, 0n);
+  const ordinary = classes.find((c) => c.kind === "ordinary");
+  const recentPrints = (await prints.list(db, sid)).filter(
+    (p) =>
+      p.companyId === company.id &&
+      p.shareClassId === ordinary?.id &&
+      !p.relatedParty &&
+      p.executedAt.getTime() >= since &&
+      p.executedAt <= viewer.now,
+  );
+  const traded = recentPrints.reduce((sum, p) => sum + p.quantity * p.priceMinor, 0n);
   return {
     name: company.name,
     slug: company.slug,
@@ -231,7 +233,11 @@ export async function getCompanyConsoleModel(viewer: Viewer, database?: Db) {
         label: "Trades in progress",
         value: String(ts.filter((t) => !tradeMachine.terminal.includes(t.status)).length),
       },
-      { label: "Settled on Atlas (180 days)", value: formatMoney(settled, company.currency) },
+      {
+        label: "Traded on Atlas (180 days)",
+        value: formatMoney(traded, company.currency),
+        caption: `${recentPrints.length} trades`,
+      },
     ],
     decisions: decisions.map((d) => d.item),
     activity: await activityModel(db, viewer, 10, [

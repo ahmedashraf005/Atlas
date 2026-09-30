@@ -1,7 +1,7 @@
 "use client";
 import { Info } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
 import { amend, submit, withdraw } from "@/app/_actions/bids";
@@ -18,15 +18,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { bidMaths } from "@/lib/bid-maths";
+import { type BidFormValues, bidMaths, validateBidForm } from "@/lib/bid-maths";
 import type { BidData } from "@/server/actions/bids";
 import type { ActionState } from "@/server/actions/pipeline";
 import type { BidComposerModel } from "@/server/read/bids";
 export function BidForm({ model: m }: { model: BidComposerModel }) {
   const router = useRouter(),
     [values, setValues] = useState(m.defaults),
+    initialMode = useRef(m.mode),
     [key] = useState(() => v7()),
     [review, setReview] = useState(false),
+    [issues, setIssues] = useState<Partial<Record<keyof BidFormValues, string>>>({}),
     [busy, start] = useTransition();
   const [state, send, pending] = useActionState<ActionState<BidData>, typeof values>(
     (prev, input) =>
@@ -39,10 +41,20 @@ export function BidForm({ model: m }: { model: BidComposerModel }) {
   const math = bidMaths(values.price, values.quantity, values.minFill, m.currency, m.band);
   useEffect(() => {
     if (state.status === "success") {
-      toast.success(m.mode === "amend" ? "Bid updated." : `Bid submitted on ${m.ref}.`);
+      toast.success(initialMode.current === "amend" ? "Bid updated." : `Bid placed on ${m.ref}.`);
       router.push("/bids");
     }
-  }, [state, m.mode, m.ref, router]);
+  }, [state, m.ref, router]);
+  useEffect(() => {
+    if (state.status === "error" && state.error.code === "VALIDATION") {
+      const next: Partial<Record<keyof BidFormValues, string>> = {};
+      for (const issue of state.error.issues ?? [])
+        if (["price", "quantity", "minFill", "rationale"].includes(issue.field))
+          next[issue.field as keyof BidFormValues] = issue.message;
+      setIssues(next);
+      setReview(false);
+    }
+  }, [state]);
   useEffect(() => {
     if (withdrawState.status === "success") {
       toast.success("Bid withdrawn.");
@@ -50,13 +62,27 @@ export function BidForm({ model: m }: { model: BidComposerModel }) {
     }
   }, [withdrawState, router]);
   const disabled = busy || pending || removing;
+  const change = (field: keyof BidFormValues, value: string) => {
+    setValues((current) => ({ ...current, [field]: value }));
+    setIssues((current) => ({ ...current, [field]: undefined }));
+  };
+  const blur = (field: keyof BidFormValues) =>
+    setIssues((current) => ({ ...current, [field]: validateBidForm(values, m)[field] }));
+  const reviewBid = () => {
+    const next = validateBidForm(values, m);
+    setIssues(next);
+    const first = (["price", "quantity", "minFill", "rationale"] as const).find((f) => next[f]);
+    if (first) document.getElementById(`bid-${first}`)?.focus();
+    else setReview(true);
+  };
   return (
     <>
       <form
         className="flex flex-col gap-5"
+        noValidate
         onSubmit={(e) => {
           e.preventDefault();
-          setReview(true);
+          reviewBid();
         }}
       >
         <div className="flex flex-col gap-2">
@@ -68,8 +94,17 @@ export function BidForm({ model: m }: { model: BidComposerModel }) {
             inputMode="decimal"
             required
             value={values.price}
-            onChange={(e) => setValues({ ...values, price: e.target.value })}
+            onChange={(e) => change("price", e.target.value)}
+            onBlur={() => blur("price")}
+            aria-invalid={!!issues.price}
+            aria-describedby={issues.price ? "bid-price-error" : undefined}
+            className={issues.price ? "border-danger" : undefined}
           />
+          {issues.price && (
+            <p id="bid-price-error" role="alert" className="type-body-sm text-danger">
+              {issues.price}
+            </p>
+          )}
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           {(["quantity", "minFill"] as const).map((field) => (
@@ -82,8 +117,17 @@ export function BidForm({ model: m }: { model: BidComposerModel }) {
                 inputMode="numeric"
                 required
                 value={values[field]}
-                onChange={(e) => setValues({ ...values, [field]: e.target.value })}
+                onChange={(e) => change(field, e.target.value)}
+                onBlur={() => blur(field)}
+                aria-invalid={!!issues[field]}
+                aria-describedby={issues[field] ? `bid-${field}-error` : undefined}
+                className={issues[field] ? "border-danger" : undefined}
               />
+              {issues[field] && (
+                <p id={`bid-${field}-error`} role="alert" className="type-body-sm text-danger">
+                  {issues[field]}
+                </p>
+              )}
               <p className="type-body-sm text-ink-muted">
                 {field === "quantity"
                   ? `Between ${m.minimumQuantity} and ${m.quantity}`
@@ -100,8 +144,17 @@ export function BidForm({ model: m }: { model: BidComposerModel }) {
             id="bid-rationale"
             value={values.rationale}
             maxLength={500}
-            onChange={(e) => setValues({ ...values, rationale: e.target.value })}
+            onChange={(e) => change("rationale", e.target.value)}
+            onBlur={() => blur("rationale")}
+            aria-invalid={!!issues.rationale}
+            aria-describedby={issues.rationale ? "bid-rationale-error" : undefined}
+            className={issues.rationale ? "border-danger" : undefined}
           />
+          {issues.rationale && (
+            <p id="bid-rationale-error" role="alert" className="type-body-sm text-danger">
+              {issues.rationale}
+            </p>
+          )}
           <p className="type-body-sm text-ink-muted">
             The seller sees this with your bid. Explain how you priced it.{" "}
             <span>{values.rationale.length}/500</span>
@@ -120,12 +173,9 @@ export function BidForm({ model: m }: { model: BidComposerModel }) {
             Bids are binding once the window closes. You can amend or withdraw until {m.closeLabel}.
           </p>
         </div>
-        {state.status === "error" && (
+        {state.status === "error" && state.error.code !== "VALIDATION" && (
           <div role="alert" className="type-body-sm text-danger">
             <p>{state.error.message}</p>
-            {state.error.issues?.map((i) => (
-              <p key={i.field}>{i.message}</p>
-            ))}
           </div>
         )}
         {withdrawState.status === "error" && (
@@ -134,7 +184,7 @@ export function BidForm({ model: m }: { model: BidComposerModel }) {
           </p>
         )}
         <div className="flex flex-wrap gap-3">
-          <Button type="submit" disabled={disabled || !math}>
+          <Button type="submit" disabled={disabled}>
             {m.mode === "amend" ? "Update bid" : "Review bid"}
           </Button>
           {m.bidId && (

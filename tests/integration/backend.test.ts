@@ -497,14 +497,12 @@ it("off keeps jobs pending, persona switch pauses their jobs, and on executes th
   });
   const result = await refreshSandbox(db, sid);
   expect(result.pendingJobs).toBe(0);
-  expect(await jobs.list(db, sid)).toHaveLength(1);
+  expect(await jobs.list(db, sid)).toHaveLength(2);
   await db.transaction((tx) => sandboxes.save(tx, sid, { persona: "seller" }));
   await refreshSandbox(db, sid);
   const remaining = await jobs.list(db, sid);
   expect(remaining.filter((j) => j.entity === "listing")).toHaveLength(0);
-  expect(remaining).toMatchObject([
-    { entity: "trade", event: "WAIVE", entityId: (await tradeByRef("T-1042")).id },
-  ]);
+  expect(remaining).toHaveLength(0);
   const unknown = await db
     .select()
     .from(schema.automationJobs)
@@ -757,7 +755,7 @@ it("registered custom job errors roll back their writes and audit before being m
   await db.transaction(async (tx) => {
     await lockSandbox(tx, sid);
     const admin = await users.forPersona(tx, sid, "company_admin");
-    await sandboxes.save(tx, sid, { autopilot: true });
+    await sandboxes.save(tx, sid, { autopilot: true, persona: "buyer_b" });
     await jobs.insert(tx, sid, {
       id: v7(),
       sandboxId: sid,

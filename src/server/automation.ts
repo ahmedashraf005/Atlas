@@ -2,10 +2,13 @@ import "server-only";
 import { v7 } from "uuid";
 import type { EntityKind } from "@/domain/effects";
 import type { Result } from "@/domain/result";
+import { isPersonaInvolved, type PersonaUser } from "@/lib/persona-involvement";
 import type { Database, Tx } from "@/server/db/client";
 import type { SandboxRow } from "@/server/db/schema";
 import type { ActionError } from "@/server/errors";
+import * as bids from "@/server/repositories/bids";
 import * as companies from "@/server/repositories/companies";
+import * as holdings from "@/server/repositories/holdings";
 import * as jobs from "@/server/repositories/jobs";
 import * as listings from "@/server/repositories/listings";
 import * as trades from "@/server/repositories/trades";
@@ -16,6 +19,77 @@ export interface PlannedJob {
   partyUserId: string;
   delaySeconds: number;
   escrowException?: boolean;
+}
+/** Resolve only sandbox-scoped facts; the pure rule decides participation. */
+export async function personaInvolvedWithJob(
+  db: Database,
+  sandboxId: string,
+  persona: PersonaUser,
+  job: Pick<jobs.JobRow, "entity" | "entityId" | "event" | "partyUserId">,
+): Promise<boolean> {
+  const actingUser = await users.find(db, sandboxId, job.partyUserId);
+  if (!actingUser) return false;
+  if (job.entity === "company") {
+    const company = await companies.find(db, sandboxId, job.entityId);
+    return company
+      ? isPersonaInvolved(
+          persona,
+          { kind: "company", requestingBuyerId: job.event, companyOrgId: company.orgId },
+          actingUser.role,
+        )
+      : false;
+  }
+  if (job.entity === "holding") {
+    const holding = await holdings.find(db, sandboxId, job.entityId);
+    const company = holding ? await companies.find(db, sandboxId, holding.companyId) : null;
+    return holding
+      ? isPersonaInvolved(
+          persona,
+          { kind: "holding", ownerId: holding.ownerId, companyOrgId: company?.orgId ?? null },
+          actingUser.role,
+        )
+      : false;
+  }
+  if (job.entity === "listing") {
+    const listing = await listings.find(db, sandboxId, job.entityId);
+    if (!listing) return false;
+    const company = await companies.find(db, sandboxId, listing.companyId);
+    return isPersonaInvolved(
+      persona,
+      {
+        kind: "listing",
+        sellerId: listing.sellerId,
+        bidBuyerIds: (await bids.forListing(db, sandboxId, listing.id)).map((bid) => bid.buyerId),
+        companyOrgId: company?.orgId ?? null,
+      },
+      actingUser.role,
+    );
+  }
+  if (job.entity === "bid") {
+    const bid = await bids.find(db, sandboxId, job.entityId);
+    const listing = bid ? await listings.find(db, sandboxId, bid.listingId) : null;
+    return bid && listing
+      ? isPersonaInvolved(
+          persona,
+          { kind: "bid", buyerId: bid.buyerId, sellerId: listing.sellerId },
+          actingUser.role,
+        )
+      : false;
+  }
+  const trade = await trades.find(db, sandboxId, job.entityId);
+  const company = trade ? await companies.find(db, sandboxId, trade.companyId) : null;
+  return trade
+    ? isPersonaInvolved(
+        persona,
+        {
+          kind: "trade",
+          sellerId: trade.sellerId,
+          buyerId: trade.buyerId,
+          companyOrgId: company?.orgId ?? null,
+        },
+        actingUser.role,
+      )
+    : false;
 }
 export function planAutomation(
   kind: EntityKind,
@@ -87,6 +161,8 @@ export async function scheduleAutomation(
   entity: EntityOf<EntityKind>,
 ): Promise<void> {
   const sid = ctx.sandbox.id;
+  const persona = await users.find(ctx.tx, sid, ctx.personaUserId);
+  if (!persona) throw new Error("Missing persona");
   // New seller rows reuse the job uniqueness key; DECIDE is a custom-job marker, not a domain event.
   if (ctx.sandbox.autopilot) {
     const listing =
@@ -103,7 +179,13 @@ export async function scheduleAutomation(
       listing &&
       "sellerId" in listing &&
       ["Closed", "Negotiating"].includes(listing.status) &&
-      listing.sellerId !== ctx.personaUserId
+      listing.sellerId !== ctx.personaUserId &&
+      (await personaInvolvedWithJob(ctx.tx, sid, persona, {
+        entity: "listing",
+        entityId: listing.id,
+        event: "DECIDE",
+        partyUserId: listing.sellerId,
+      }))
     )
       await jobs.insert(ctx.tx, sid, {
         id: v7(),
@@ -139,7 +221,16 @@ export async function scheduleAutomation(
     },
     parties,
   );
-  for (const p of planned)
+  for (const p of planned) {
+    if (
+      !(await personaInvolvedWithJob(ctx.tx, sid, persona, {
+        entity: kind,
+        entityId: entity.id,
+        event: p.event,
+        partyUserId: p.partyUserId,
+      }))
+    )
+      continue;
     await jobs.insert(ctx.tx, sid, {
       id: v7(),
       sandboxId: sid,
@@ -154,13 +245,15 @@ export async function scheduleAutomation(
       createdAt: ctx.now,
       executedAt: null,
     });
+  }
 }
 /** Read-only planning preserves refresh's fast path when every job already exists. */
 export async function missingTradeJobs(db: Database, sandbox: SandboxRow) {
   if (!sandbox.autopilot) return [];
   const allUsers = await users.list(db, sandbox.id);
-  const personaUserId = allUsers.find((u) => u.personaKey === sandbox.persona)?.id;
-  if (!personaUserId) throw new Error("Missing persona");
+  const persona = allUsers.find((u) => u.personaKey === sandbox.persona);
+  if (!persona) throw new Error("Missing persona");
+  const personaUserId = persona.id;
   const allCompanies = await companies.list(db, sandbox.id);
   const pending = await jobs.list(db, sandbox.id);
   const missing: { tradeId: string; job: PlannedJob }[] = [];
@@ -182,14 +275,27 @@ export async function missingTradeJobs(db: Database, sandbox: SandboxRow) {
           allUsers.find((u) => u.role === "operator" && u.simulatedOnly)?.id ?? null,
       },
     );
-    for (const job of planned)
+    for (const job of planned) {
+      const actingRole = allUsers.find((u) => u.id === job.partyUserId)?.role;
       if (
+        actingRole &&
+        isPersonaInvolved(
+          persona,
+          {
+            kind: "trade",
+            sellerId: trade.sellerId,
+            buyerId: trade.buyerId,
+            companyOrgId: orgId ?? null,
+          },
+          actingRole,
+        ) &&
         !pending.some(
           (j) =>
             j.entityId === trade.id && j.event === job.event && j.partyUserId === job.partyUserId,
         )
       )
         missing.push({ tradeId: trade.id, job });
+    }
   }
   return missing;
 }

@@ -31,7 +31,7 @@ export function TopBar({
         rofrMode={viewer.rofrMode}
       />
       <div className="ml-auto flex shrink-0 items-center gap-4 type-body-sm text-ink-muted">
-        <span className="hidden items-center gap-1.5 md:flex">
+        <span className="hidden items-center gap-1.5 min-[1400px]:flex">
           <Clock size={16} strokeWidth={1.5} className="shrink-0" aria-hidden />
           <span className="max-w-40 tabular-nums">Sandbox time {formatDateTime(viewer.now)}</span>
         </span>

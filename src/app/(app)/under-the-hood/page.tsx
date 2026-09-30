@@ -12,6 +12,7 @@ import {
 import { getUnderTheHoodModel } from "@/server/read/under-the-hood";
 import { getViewer } from "@/server/viewer";
 import { MermaidDiagram } from "./_components/mermaid-diagram";
+import { SeeIt } from "./_components/see-it";
 import { StateMachines } from "./_components/state-machines";
 export const metadata = { title: "Under the hood" };
 export default async function UnderTheHoodPage() {
@@ -51,12 +52,10 @@ export default async function UnderTheHoodPage() {
                 <TableCell>{c.threat}</TableCell>
                 <TableCell className="whitespace-normal min-w-64">{c.control}</TableCell>
                 <TableCell>
-                  {c.href ? (
-                    <Link href={c.href} className="text-atlas-green hover:underline">
-                      {c.see}
-                    </Link>
+                  {c.href && "persona" in c && c.persona ? (
+                    <SeeIt persona={c.persona} href={c.href} label={c.see} />
                   ) : (
-                    "—"
+                    c.see || "—"
                   )}
                 </TableCell>
               </TableRow>

@@ -27,7 +27,7 @@ export const TOUR_STEPS: readonly {
     persona: "seller",
     href: "/holdings",
     title: "Selling shares",
-    text: 'Eligibility comes from the company\'s transfer policy. Open L-2031: bids stay sealed until the window closes. Use "+7 days", then counter or accept.',
+    text: "Eligibility comes from the company's transfer policy. Open L-2031: bids stay sealed until the window closes. Use the toolbar's time controls (+7 days), then counter or accept.",
   },
   {
     persona: "company_admin",

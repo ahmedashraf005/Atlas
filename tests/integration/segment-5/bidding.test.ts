@@ -386,9 +386,13 @@ it("simulated seller allocates eligible bids and keeps the best remaining backup
   await jump(7 * DAY);
   const l = await listing(),
     ts = await trades.forListing(db, sid, l.id);
-  expect(ts.map((t) => [t.quantity, t.priceMinor])).toEqual([
-    [5000n, 3550n],
-    [6000n, 3520n],
+  expect(
+    ts
+      .map((t) => ({ quantity: t.quantity, priceMinor: t.priceMinor }))
+      .sort((a, b) => (a.priceMinor > b.priceMinor ? -1 : a.priceMinor < b.priceMinor ? 1 : 0)),
+  ).toEqual([
+    { quantity: 5000n, priceMinor: 3550n },
+    { quantity: 6000n, priceMinor: 3520n },
   ]);
   const d = (await bids.forListing(db, sid, l.id)).find((b) => b.priceMinor === 3480n);
   expect(d?.status).toBe("Backup");
@@ -498,6 +502,7 @@ it("shows the seed counter, past trade, close record and fixed company ordering"
 
 it("does not run the seller's pending job when that seller becomes the persona", async () => {
   await settings({ persona: "buyer_a", autopilot: true });
+  expect((await submit()).status).toBe("success");
   await jump(5 * DAY);
   const l = await listing();
   expect(

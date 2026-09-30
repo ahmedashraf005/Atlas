@@ -1,5 +1,5 @@
 "use client";
-import { Settings2 } from "lucide-react";
+import { FastForward, Settings2 } from "lucide-react";
 import { useActionState, useEffect, useTransition } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/atlas/confirm-dialog";
@@ -146,12 +146,10 @@ export function DemoControls({
     </DropdownMenu>
   );
   return (
-    <div className="flex min-w-0 items-center gap-2">
+    <div className="flex min-w-0 shrink-0 items-center gap-2">
       <section
         aria-label="Persona and time controls"
-        // biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard scrolling is required for this labelled overflow region, including Safari.
-        tabIndex={0}
-        className="hidden min-w-0 items-center gap-2 overflow-x-auto py-1 lg:flex focus-visible:outline-2 focus-visible:outline-focus-ring"
+        className="hidden shrink-0 items-center gap-2 py-1 lg:flex"
       >
         <label htmlFor="persona" className="shrink-0 whitespace-nowrap type-label text-ink-muted">
           View as
@@ -161,7 +159,10 @@ export function DemoControls({
           disabled={busy}
           onValueChange={(value) => changePersona(value as PersonaKey)}
         >
-          <SelectTrigger id="persona" className="h-8 w-64 shrink-0 whitespace-nowrap">
+          <SelectTrigger
+            id="persona"
+            className="h-8 w-[220px] min-w-[220px] shrink-0 whitespace-nowrap"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -172,10 +173,28 @@ export function DemoControls({
             ))}
           </SelectContent>
         </Select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="sm" className="shrink-0 xl:hidden" disabled={busy}>
+              <FastForward size={16} strokeWidth={1.5} aria-hidden /> Time
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {([24, 168, 720] as const).map((hours) => (
+              <DropdownMenuItem
+                key={hours}
+                disabled={busy}
+                onSelect={() => run(() => advanceClock({ status: "idle" }, { hours }))}
+              >
+                +{hours / 24} {hours === 24 ? "day" : "days"}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         {([24, 168, 720] as const).map((hours) => (
           <Button
             key={hours}
-            className="shrink-0"
+            className="hidden shrink-0 xl:inline-flex"
             variant="secondary"
             size="sm"
             disabled={busy}

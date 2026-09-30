@@ -37,7 +37,7 @@ test("company queue shows seeded decisions and publishes a redacted answer for a
   await persona(page, "company_admin");
   await expect(page.getByText("Right of first refusal · T-1042", { exact: true })).toBeVisible();
   await expect(page.getByText("Question from Investor #B-204", { exact: true })).toBeVisible();
-  await expect(page.getByText("AED 143,200", { exact: true })).toBeVisible();
+  await expect(page.getByText("AED 528,600", { exact: true })).toBeVisible();
   await page.getByLabel("Answer", { exact: true }).fill("call 050 123 4567");
   await page.getByRole("button", { name: "Publish answer", exact: true }).click();
   await expect(page.getByText("Question from Investor #B-204", { exact: true })).toHaveCount(0);

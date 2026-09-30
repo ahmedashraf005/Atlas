@@ -49,6 +49,13 @@ export async function find(db: Database, sandboxId: string, id: string): Promise
 export async function list(db: Database, sandboxId: string): Promise<Trade[]> {
   return (await db.select().from(trades).where(eq(trades.sandboxId, sandboxId))).map(toTrade);
 }
+export async function findByRef(db: Database, sandboxId: string, ref: string) {
+  const [row] = await db
+    .select()
+    .from(trades)
+    .where(and(eq(trades.sandboxId, sandboxId), eq(trades.ref, ref)));
+  return row ?? null;
+}
 export async function getForUpdate(tx: Tx, sandboxId: string, id: string): Promise<Trade | null> {
   const [row] = await tx
     .select()

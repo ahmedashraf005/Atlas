@@ -26,12 +26,26 @@ async function confirm(page: Page, title: string, label: string) {
 test("buyer submits a binding bid, amends and withdraws", async ({ page }) => {
   await composer(page);
   await page.getByLabel("Price per share (AED)").fill("35.50");
+  await page.getByLabel("Quantity", { exact: true }).fill("1000");
+  await page.getByRole("button", { name: "Review bid", exact: true }).click();
+  await expect(
+    page.getByText("Minimum for this listing is 2,000 sh.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Quantity", { exact: true })).toHaveAttribute(
+    "aria-invalid",
+    "true",
+  );
+  await expect(page.getByRole("alertdialog", { name: "Submit a binding bid?" })).toHaveCount(0);
   await page.getByLabel("Quantity", { exact: true }).fill("5000");
+  await expect(
+    page.getByText("Minimum for this listing is 2,000 sh.", { exact: true }),
+  ).toHaveCount(0);
   await expect(page.getByText("Within the fair-value band", { exact: true })).toBeVisible();
   await expect(page.getByText(/Total:.*AED 177,500/)).toBeVisible();
   await page.getByRole("button", { name: "Review bid", exact: true }).click();
   await confirm(page, "Submit a binding bid?", "Submit bid");
   await expect(page).toHaveURL("/bids");
+  await expect(page.getByText("Bid placed on L-2031.", { exact: true })).toBeVisible();
   await expect(page.getByText("In the window", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Amend", exact: true }).click();
   await page.getByLabel("Price per share (AED)").fill("35.60");

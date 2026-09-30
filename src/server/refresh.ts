@@ -7,6 +7,7 @@ import {
   JobSkippedError,
   jobWillExecute,
   missingTradeJobs,
+  personaInvolvedWithJob,
   reconcileTradeJobs,
 } from "@/server/automation";
 import { sandboxClock } from "@/server/clock";
@@ -18,6 +19,7 @@ import * as jobs from "@/server/repositories/jobs";
 import * as listings from "@/server/repositories/listings";
 import * as sandboxes from "@/server/repositories/sandboxes";
 import * as trades from "@/server/repositories/trades";
+import type { UserRow } from "@/server/repositories/users";
 import * as users from "@/server/repositories/users";
 import {
   allTradesTerminal,
@@ -32,7 +34,7 @@ type DueItem =
 async function dueItems(
   db: Database,
   sandbox: SandboxRow,
-  personaUserId: string,
+  persona: UserRow,
   now: Date,
 ): Promise<DueItem[]> {
   const items: DueItem[] = [];
@@ -52,7 +54,11 @@ async function dueItems(
     if (event) items.push({ type: "system", id: trade.id, event, at: event.effectiveAt });
   }
   for (const job of await jobs.due(db, sandbox.id, now))
-    if (job.dueAt <= now && jobWillExecute(job, { autopilot: sandbox.autopilot, personaUserId }))
+    if (
+      job.dueAt <= now &&
+      jobWillExecute(job, { autopilot: sandbox.autopilot, personaUserId: persona.id }) &&
+      (await personaInvolvedWithJob(db, sandbox.id, persona, job))
+    )
       items.push({ type: "job", job, at: job.dueAt });
   return items.sort((a, b) => {
     const time = a.at.getTime() - b.at.getTime();
@@ -63,14 +69,15 @@ async function dueItems(
     return left.localeCompare(right);
   });
 }
-async function pendingCount(
-  db: Database,
-  sandbox: SandboxRow,
-  personaUserId: string,
-): Promise<number> {
-  return (await jobs.list(db, sandbox.id)).filter((j) =>
-    jobWillExecute(j, { autopilot: sandbox.autopilot, personaUserId }),
-  ).length;
+async function pendingCount(db: Database, sandbox: SandboxRow, persona: UserRow): Promise<number> {
+  let count = 0;
+  for (const job of await jobs.list(db, sandbox.id))
+    if (
+      jobWillExecute(job, { autopilot: sandbox.autopilot, personaUserId: persona.id }) &&
+      (await personaInvolvedWithJob(db, sandbox.id, persona, job))
+    )
+      count++;
+  return count;
 }
 export async function refreshInTransaction(
   tx: Tx,
@@ -80,7 +87,7 @@ export async function refreshInTransaction(
     now = sandboxClock(sandbox).now();
   let changed = await reconcileTradeJobs(tx, sandbox, now);
   for (let step = 0; step < 25; step++) {
-    const item = (await dueItems(tx, sandbox, persona.id, now))[0];
+    const item = (await dueItems(tx, sandbox, persona, now))[0];
     if (!item) break;
     const base: TxContext = {
       tx,
@@ -140,7 +147,7 @@ export async function refreshInTransaction(
     }
     changed = true;
   }
-  return { changed, pendingJobs: await pendingCount(tx, sandbox, persona.id) };
+  return { changed, pendingJobs: await pendingCount(tx, sandbox, persona) };
 }
 export async function refreshSandbox(
   db: Db,
@@ -150,10 +157,10 @@ export async function refreshSandbox(
   if (!sandbox) return { changed: false, pendingJobs: 0 };
   const persona = await users.forPersona(db, sandboxId, sandbox.persona);
   if (
-    !(await dueItems(db, sandbox, persona.id, sandboxClock(sandbox).now())).length &&
+    !(await dueItems(db, sandbox, persona, sandboxClock(sandbox).now())).length &&
     !(await missingTradeJobs(db, sandbox)).length
   )
-    return { changed: false, pendingJobs: await pendingCount(db, sandbox, persona.id) };
+    return { changed: false, pendingJobs: await pendingCount(db, sandbox, persona) };
   return db.transaction(async (tx) =>
     refreshInTransaction(tx, await sandboxes.lockSandbox(tx, sandboxId)),
   );

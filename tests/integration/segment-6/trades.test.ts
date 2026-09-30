@@ -3,6 +3,7 @@ import { v7 } from "uuid";
 import { afterAll, beforeAll, beforeEach, expect, it, vi } from "vitest";
 import type { z } from "zod";
 import type { PersonaKey } from "@/config/personas";
+import { fairValueBand } from "@/domain/pricing";
 import { systemClock } from "@/lib/clock";
 import { acceptCounterDef } from "@/server/actions/bids";
 import { type ActionDef, executeAction } from "@/server/actions/pipeline";
@@ -11,19 +12,22 @@ import { verifySandboxChain } from "@/server/audit";
 import { sandboxClock } from "@/server/clock";
 import { closeDatabase, type Db } from "@/server/db/client";
 import { messageThreads } from "@/server/db/schema";
+import { getCompanyConsoleModel } from "@/server/read/consoles";
 import { getTradeDocumentModel, getTradeRoomModel, getTradesModel } from "@/server/read/trades";
 import { refreshSandbox } from "@/server/refresh";
 import * as audit from "@/server/repositories/audit";
 import * as bids from "@/server/repositories/bids";
+import * as companies from "@/server/repositories/companies";
 import * as documents from "@/server/repositories/documents";
 import * as escrow from "@/server/repositories/escrow";
 import * as holdings from "@/server/repositories/holdings";
 import * as jobs from "@/server/repositories/jobs";
 import * as messages from "@/server/repositories/messages";
+import * as prints from "@/server/repositories/prints";
 import * as sandboxes from "@/server/repositories/sandboxes";
 import * as trades from "@/server/repositories/trades";
 import * as users from "@/server/repositories/users";
-import { ensureSandbox } from "@/server/sandbox";
+import { ensureSandbox, resetSandbox } from "@/server/sandbox";
 import type { Viewer } from "@/server/viewer";
 import { createTestDb } from "../helpers/db";
 
@@ -132,6 +136,70 @@ it("catch-up obeys company persona, switching and autopilot off", async () => {
   await settings({ persona: "buyer_b" });
   await refreshSandbox(db, sid);
   expect((await trade()).status).toBe("AwaitingFunds");
+});
+it("unrelated personas never move Buyer B's seeded trade or its fair-value band", async () => {
+  sid = await resetSandbox(db, sid, "buyer_a");
+  const target = await trade();
+  await settings({ clockOffsetMs: 10 * 60 * 1000 });
+  await refreshSandbox(db, sid);
+  expect((await trades.find(db, sid, target.id))?.status).toBe("RofrPending");
+  expect((await jobs.list(db, sid)).filter((j) => j.entityId === target.id)).toEqual([]);
+  const falaj = (await companies.list(db, sid)).find((c) => c.slug === "falaj-robotics");
+  if (!falaj) throw Error("Falaj missing");
+  expect(
+    fairValueBand({
+      trades: (await prints.list(db, sid)).filter((p) => p.companyId === falaj.id),
+      now: new Date(T0.getTime() + 10 * 60 * 1000),
+      fallbackMinor: null,
+    }),
+  ).toMatchObject({
+    method: "trades",
+    lowMinor: 3420n,
+    midMinor: 3580n,
+    highMinor: 3610n,
+    tradeCount: 6,
+  });
+  await settings({ persona: "company_admin" });
+  await refreshSandbox(db, sid);
+  expect((await getCompanyConsoleModel(await viewer("company_admin"), db))?.decisions).toHaveLength(
+    2,
+  );
+  await settings({ persona: "operator" });
+  await refreshSandbox(db, sid);
+  expect((await trades.find(db, sid, target.id))?.status).toBe("RofrPending");
+});
+it("a queued job stays pending after switching to an unrelated persona", async () => {
+  await settings({ autopilot: true });
+  await refreshSandbox(db, sid);
+  expect((await jobs.list(db, sid)).map((j) => j.event)).toEqual(["WAIVE"]);
+  await settings({ persona: "buyer_a" });
+  await jump(6000);
+  expect((await trade()).status).toBe("RofrPending");
+  expect((await jobs.list(db, sid)).map((j) => j.event)).toEqual(["WAIVE"]);
+  await settings({ persona: "buyer_b" });
+  await refreshSandbox(db, sid);
+  expect((await trade()).status).toBe("AwaitingFunds");
+});
+it("Buyer A's counter grows into a settled trade through involved auto-pilot parties", async () => {
+  await settings({ persona: "buyer_a", autopilot: true });
+  const buyer = await users.forPersona(db, sid, "buyer_a");
+  const counter = (await bids.forBuyer(db, sid, buyer.id)).find((b) => b.status === "Countered");
+  if (!counter) throw Error("Counter missing");
+  expect((await act("buyer_a", acceptCounterDef, { bidId: counter.id })).status).toBe("success");
+  await jump(3000);
+  const created = (await trades.forBuyer(db, sid, buyer.id)).find((t) => t.bidId === counter.id);
+  if (!created) throw Error("Trade missing");
+  expect(created.status).toBe("AwaitingDocs");
+  expect((await act("buyer_a", actions.signDef, { tradeId: created.id })).status).toBe("success");
+  await jump(8000);
+  await jump(14000);
+  expect((await trades.find(db, sid, created.id))?.status).toBe("AwaitingFunds");
+  expect((await act("buyer_a", actions.markWireSentDef, { tradeId: created.id })).status).toBe(
+    "success",
+  );
+  await jump(28000);
+  expect((await trades.find(db, sid, created.id))?.status).toBe("Settled");
+  expect((await verifySandboxChain(db, sid)).ok).toBe(true);
 });
 it("the action refresh step reconciles missing trade jobs", async () => {
   await settings({ autopilot: true });

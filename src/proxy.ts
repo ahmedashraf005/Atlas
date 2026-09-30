@@ -9,6 +9,11 @@ export async function proxy(request: NextRequest) {
   const headers = new Headers(request.headers);
   headers.set("x-nonce", nonce);
   headers.set("Content-Security-Policy", csp);
+  if (request.nextUrl.pathname === "/api/health") {
+    const response = NextResponse.next({ request: { headers } });
+    response.headers.set("Content-Security-Policy", csp);
+    return response;
+  }
   let nextToken: string | null = null;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   if (!token || !(await verifySession(token))) {

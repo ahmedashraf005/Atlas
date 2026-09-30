@@ -5,6 +5,7 @@ import { authorize } from "@/domain/authz";
 import { forbidden } from "@/domain/errors";
 import { redactMessage } from "@/domain/redact";
 import { err, ok } from "@/domain/result";
+import { isPersonaInvolved } from "@/lib/persona-involvement";
 import { type ActionDef, defineAction } from "@/server/actions/pipeline";
 import { appendAudit } from "@/server/audit";
 import { NotFoundError } from "@/server/errors";
@@ -81,7 +82,16 @@ export const requestAccessDef: ActionDef<typeof accessInput, AccessData> = {
         (u) =>
           u.role === "company_admin" && u.orgId === company.orgId && u.id !== ctx.personaUserId,
       );
-      if (admin)
+      const persona = await users.find(ctx.tx, sid, ctx.personaUserId);
+      if (
+        admin &&
+        persona &&
+        isPersonaInvolved(
+          persona,
+          { kind: "company", requestingBuyerId: ctx.actor.userId, companyOrgId: company.orgId },
+          admin.role,
+        )
+      )
         await jobs.insert(ctx.tx, sid, {
           id: v7(),
           sandboxId: sid,
