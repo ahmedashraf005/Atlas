@@ -18,7 +18,7 @@ it("validates bid fields before review with the server's quantity messages", () 
     /two decimal places/,
   );
   expect(validateBidForm({ ...valid, price: "0" }, listing).price).toBe(
-    "The value must be greater than zero.",
+    "Enter an amount like 3.00 (up to two decimal places).",
   );
   expect(validateBidForm({ ...valid, rationale: "x".repeat(501) }, listing).rationale).toBe(
     "Keep the rationale to 500 characters or fewer.",

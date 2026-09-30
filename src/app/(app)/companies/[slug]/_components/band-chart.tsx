@@ -34,26 +34,30 @@ export interface ChartModel {
 }
 export function BandChart({ model }: { model: ChartModel }) {
   if (model.hidden) return <EmptyState title="The company limits who can see trade prices." />;
-  if (!model.points.length)
-    return (
-      <EmptyState title="No Atlas trades yet. The fair value shown is an estimate from the last round." />
-    );
+  if (!model.points.length) return <EmptyState title="No Atlas trades yet." />;
   const values = model.points
       .map((p) => p.price)
       .concat(model.band ? [model.band.low, model.band.high] : [], model.lastRound ?? []),
     min = Math.min(...values),
     max = Math.max(...values),
-    pad = (max - min || max) * 0.08;
+    pad = (max - min || max) * 0.08,
+    roughInterval = (max - min + pad * 2) / 5,
+    magnitude = 10 ** Math.floor(Math.log10(roughInterval)),
+    normalized = roughInterval / magnitude,
+    interval =
+      (normalized < 1.5 ? 1 : normalized < 3.5 ? 2 : normalized < 7.5 ? 5 : 10) * magnitude,
+    yMin = Math.floor((min - pad) / interval) * interval,
+    yMax = Math.ceil((max + pad) / interval) * interval;
   return (
     <>
       <div role="img" aria-label={model.ariaLabel} className="h-64 min-w-0">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={model.points} margin={{ top: 16, right: 14, bottom: 4, left: 2 }}>
+          <ComposedChart data={model.points} margin={{ top: 16, right: 24, bottom: 4, left: 2 }}>
             <CartesianGrid stroke="var(--line)" vertical={false} />
             <XAxis
               type="number"
               dataKey="t"
-              domain={[model.start, model.end]}
+              domain={[model.start, model.end + 7 * 86_400_000]}
               scale="time"
               ticks={model.ticks.map((t) => t.t)}
               tickFormatter={(v) => model.ticks.find((t) => t.t === v)?.label ?? ""}
@@ -61,7 +65,11 @@ export function BandChart({ model }: { model: ChartModel }) {
             />
             <YAxis
               type="number"
-              domain={[min - pad, max + pad]}
+              domain={[yMin, yMax]}
+              ticks={Array.from(
+                { length: Math.round((yMax - yMin) / interval) + 1 },
+                (_, i) => yMin + i * interval,
+              )}
               tickFormatter={(v) => Number(v).toFixed(2)}
               tick={{ fill: "var(--ink-muted)", fontSize: 12 }}
               width={52}

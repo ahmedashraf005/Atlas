@@ -1,11 +1,14 @@
 import "server-only";
 import { z } from "zod";
+import { evaluateBuyer } from "@/domain/policy";
 import { formatDate, formatMoney } from "@/lib/format";
 import { type Db, getDb } from "@/server/db/client";
 import { companyReference } from "@/server/read/company";
 import * as companies from "@/server/repositories/companies";
 import * as discovery from "@/server/repositories/discovery";
 import * as mandates from "@/server/repositories/mandates";
+import { buyerProfile } from "@/server/repositories/parties";
+import * as users from "@/server/repositories/users";
 import type { Viewer } from "@/server/viewer";
 
 const schema = z.object({
@@ -26,6 +29,9 @@ export async function getDiscoverModel(viewer: Viewer, raw: unknown = {}, dbArg?
   ]);
   const mine =
     viewer.user.role === "buyer" ? allMandates.filter((m) => m.buyerId === viewer.user.id) : [];
+  const viewerRow =
+    viewer.user.role === "buyer" ? await users.find(db, viewer.sandboxId, viewer.user.id) : null;
+  const profile = viewerRow ? buyerProfile(viewerRow) : null;
   const sectors = [...new Set(all.map((c) => c.sector))].sort(),
     stages = [...new Set(all.map((c) => c.stage))].sort();
   const filters = {
@@ -38,7 +44,10 @@ export async function getDiscoverModel(viewer: Viewer, raw: unknown = {}, dbArg?
   const rows = await Promise.all(
     all.map(async (c) => {
       const ref = await companyReference(viewer, c, db);
-      const matches = mine.some((m) => m.sectors.includes(c.sector) && m.stages.includes(c.stage));
+      const matches =
+        !!profile &&
+        evaluateBuyer({ policy: ref.policy, buyer: profile }).ok &&
+        mine.some((m) => m.sectors.includes(c.sector) && m.stages.includes(c.stage));
       const open = listingRows.filter((l) => l.companyId === c.id && l.status === "Live").length;
       return {
         slug: c.slug,
@@ -49,8 +58,7 @@ export async function getDiscoverModel(viewer: Viewer, raw: unknown = {}, dbArg?
         roundPrice: c.lastRoundPriceMinor
           ? formatMoney(c.lastRoundPriceMinor, c.currency, "perShare")
           : "—",
-        fairValue:
-          ref.band.method === "waterfall" && !ref.hidden ? `${ref.bandValue} est.` : ref.bandValue,
+        fairValue: ref.bandValue,
         openListings: open ? String(open) : "—",
         openCount: open,
         matches,

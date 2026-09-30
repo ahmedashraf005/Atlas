@@ -76,7 +76,7 @@ test("guided tour navigates all eight steps with the right persona, persists and
   const steps = [
     ["/companies/falaj-robotics", "Investor #B-081"],
     ["/bids", "Investor #B-081"],
-    ["/trades", "Investor #B-081"],
+    ["/bids", "Investor #B-081"],
     ["/holdings", "Holder #S-214"],
     ["/company", "Falaj Robotics · CFO"],
     ["/ops", "Atlas compliance"],
@@ -87,6 +87,7 @@ test("guided tour navigates all eight steps with the right persona, persists and
     const step = steps[i];
     if (!step) throw Error("step");
     await expect(panel).toContainText(`Step ${i + 1} of 8`);
+    if (i === 2) await expect(panel).toContainText("Accept the counter in step 2 first");
     await panel.getByRole("button", { name: "Take me there" }).click();
     await expect(page).toHaveURL(step[0] as string);
     await expect(page.getByRole("navigation", { name: "Main", exact: true })).toContainText(
@@ -103,7 +104,7 @@ test("guided tour navigates all eight steps with the right persona, persists and
 });
 test("company notification opens its trade and marks only that item read", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button").filter({ hasText: "Falaj Robotics · CFO" }).click();
+  await page.getByRole("button").filter({ hasText: "Company · Falaj Robotics CFO" }).click();
   const bell = page.getByRole("button", { name: "Notifications, 1 unread", exact: true });
   await expect(bell).toBeVisible();
   await bell.click();

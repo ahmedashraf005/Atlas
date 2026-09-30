@@ -22,7 +22,10 @@ import { AskQuestion } from "./_components/ask-question";
 import { BandChart } from "./_components/band-chart";
 import { RequestAccessDialog } from "./_components/request-access-dialog";
 import { ValueAtExit } from "./_components/value-at-exit";
-export const metadata = { title: "Company" };
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const model = await getCompanyModel(await getViewer(), (await params).slug);
+  return { title: { absolute: model ? `${model.name} · Atlas` : "Company · Atlas" } };
+}
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const viewer = await getViewer(),
     { slug } = await params,
@@ -49,11 +52,11 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           model.isBuyer ? (
             model.requestAccess ? (
               <RequestAccessDialog company={model.name} companyId={model.id} />
-            ) : (
+            ) : model.approvedAccess ? (
               <Button asChild variant="secondary">
                 <Link href="#listings">View listings</Link>
               </Button>
-            )
+            ) : null
           ) : null
         }
       />
@@ -65,7 +68,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         />
         <Figure
           label="Fair-value band"
-          verifiedHeader="Fair-value band · ordinary shares"
+          verifiedHeader={model.stats.band.label}
           value={model.stats.band.value}
           caption={model.stats.band.caption}
         />
@@ -109,34 +112,39 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <Table>
             <TableHeader>
               <TableRow>
-                {[
-                  "Listing",
-                  "Share class",
-                  "Quantity",
-                  "Min fill",
-                  "Seller",
-                  "Bid window",
-                  "Status",
-                  "Action",
-                ].map((h) => (
-                  <TableHead key={h}>{h}</TableHead>
-                ))}
+                <TableHead>Listing</TableHead>
+                <TableHead className="hidden xl:table-cell">Share class</TableHead>
+                <TableHead className="hidden xl:table-cell">Quantity</TableHead>
+                <TableHead className="hidden xl:table-cell">Min fill</TableHead>
+                <TableHead className="hidden xl:table-cell">Seller</TableHead>
+                <TableHead className="hidden xl:table-cell">Bid window</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {model.listings.map((l) => (
                 <TableRow key={l.id} className={l.highlight ? "bg-atlas-green-soft" : undefined}>
                   <TableCell>
-                    <span className="font-semibold">{l.ref}</span>
+                    <span className="font-semibold whitespace-nowrap">{l.ref}</span>
+                    <div className="type-body-sm text-ink-muted xl:hidden">{l.shareClass}</div>
+                    <div className="type-body-sm text-ink-muted xl:hidden">
+                      {l.quantity} · Min fill {l.minFill}
+                    </div>
+                    <div className="type-body-sm text-ink-muted xl:hidden">
+                      {l.seller} · {l.window}
+                    </div>
                     {l.ownBid && <div className="type-body-sm text-ink-muted">{l.ownBid}</div>}
                   </TableCell>
-                  <TableCell>{l.shareClass}</TableCell>
-                  <TableCell className="text-right type-figure">{l.quantity}</TableCell>
-                  <TableCell className="text-right">{l.minFill}</TableCell>
-                  <TableCell>
+                  <TableCell className="hidden xl:table-cell">{l.shareClass}</TableCell>
+                  <TableCell className="hidden text-right type-figure xl:table-cell">
+                    {l.quantity}
+                  </TableCell>
+                  <TableCell className="hidden text-right xl:table-cell">{l.minFill}</TableCell>
+                  <TableCell className="hidden xl:table-cell">
                     {l.seller} <VerifiedMark label="Holding verified by company" />
                   </TableCell>
-                  <TableCell>{l.window}</TableCell>
+                  <TableCell className="hidden xl:table-cell">{l.window}</TableCell>
                   <TableCell>
                     <span className="flex gap-1">
                       {l.badges.map((b) => (
@@ -146,7 +154,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                       ))}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-nowrap">
                     {l.action ? (
                       <Button
                         variant={l.action.primary ? "primary" : "secondary"}
@@ -226,9 +234,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
               <StatusBadge tone="danger" className="self-start">
                 Access not granted
               </StatusBadge>
-              <p className="type-body-sm text-ink-muted">
-                The company has restricted access to its information.
-              </p>
+              <p className="type-body-sm text-ink-muted">{model.info.denial}</p>
             </>
           ) : (
             <>
@@ -244,7 +250,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                     className="flex items-center gap-2 rounded-md border border-line p-3 hover:bg-surface-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                   >
                     <FileText size={18} strokeWidth={1.5} />
-                    <span className="flex-1">{d.title}</span>
+                    <span className="min-w-0 flex-1 whitespace-normal break-normal">{d.title}</span>
                     <span className="type-body-sm text-ink-muted">{d.label}</span>
                   </Link>
                 ))

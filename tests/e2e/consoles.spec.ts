@@ -7,9 +7,9 @@ async function persona(page: Page, role: "company_admin" | "operator" | "seller"
     .getByRole("button", {
       name:
         role === "company_admin"
-          ? /Falaj Robotics · CFO/
+          ? /Company · Falaj Robotics CFO/
           : role === "operator"
-            ? /Atlas compliance/
+            ? /Operator · Atlas Compliance/
             : role === "seller"
               ? /Holder #S-214/
               : /Investor #B-081/,

@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/shell/sidebar";
 import { TopBar } from "@/components/shell/top-bar";
 import { TourPanel } from "@/components/shell/tour-panel";
 import { getNotificationsModel } from "@/server/read/notifications";
+import { hasTradeInProgress } from "@/server/read/tour";
 import { getViewer } from "@/server/viewer";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -25,7 +26,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           </main>
         </div>
       </div>
-      <TourPanel persona={viewer.persona} />
+      <TourPanel persona={viewer.persona} hasTradeInProgress={await hasTradeInProgress(viewer)} />
     </>
   );
 }

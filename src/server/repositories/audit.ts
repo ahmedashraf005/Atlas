@@ -73,6 +73,26 @@ export async function insert(tx: Tx, sandboxId: string, entry: AuditEntry): Prom
   });
 }
 
+export async function listingWithdrawnAt(
+  db: Database,
+  sandboxId: string,
+  listingId: string,
+): Promise<Date | null> {
+  const [entry] = await db
+    .select({ at: auditLog.at })
+    .from(auditLog)
+    .where(
+      and(
+        eq(auditLog.sandboxId, sandboxId),
+        eq(auditLog.entityId, listingId),
+        eq(auditLog.action, "listing.WITHDRAW"),
+      ),
+    )
+    .orderBy(desc(auditLog.seq))
+    .limit(1);
+  return entry?.at ?? null;
+}
+
 export async function listingRequest(
   db: Database,
   sandboxId: string,

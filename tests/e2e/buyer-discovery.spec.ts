@@ -53,7 +53,9 @@ test("Falaj page, document and exit slider", async ({ page }) => {
 test("buyer B Wadi access is denied automatically", async ({ page }) => {
   await page.goto("/discover");
   await page.getByRole("combobox", { name: "View as" }).click();
-  await page.getByRole("option", { name: "Buyer B · Investor #B-117", exact: true }).click();
+  await page
+    .getByRole("option", { name: "Buyer B · Investor #B-117 · Individual investor", exact: true })
+    .click();
   await expect(page.getByRole("combobox", { name: "View as" })).toContainText("Buyer B");
   await page.goto("/companies/wadi-ledger");
   await page.getByRole("button", { name: "Request access" }).first().click();
@@ -64,11 +66,15 @@ test("buyer B Wadi access is denied automatically", async ({ page }) => {
   await submit.click();
   await expect(page.getByText("Awaiting company approval", { exact: true })).toBeVisible();
   await expect(page.getByText("Access not granted")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText("Wadi Ledger accepts only Family offices, Funds.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Request access" })).toHaveCount(0);
 });
 test("buyer B Qamra access and redacted question", async ({ page }) => {
   await page.goto("/discover");
   await page.getByRole("combobox", { name: "View as" }).click();
-  await page.getByRole("option", { name: "Buyer B · Investor #B-117", exact: true }).click();
+  await page
+    .getByRole("option", { name: "Buyer B · Investor #B-117 · Individual investor", exact: true })
+    .click();
   await expect(page.getByRole("combobox", { name: "View as" })).toContainText("Buyer B");
   await page.goto("/companies/qamra-health");
   await page.getByRole("button", { name: "Request access" }).first().click();

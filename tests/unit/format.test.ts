@@ -59,6 +59,7 @@ const hour = 60 * minute;
 const day = 24 * hour;
 it.each([
   [5 * day + 3 * hour, "in 5 days"],
+  [4 * day + 23 * hour, "in 5 days"],
   [20 * hour + 59 * minute, "in 20h"],
   [45 * minute, "in 45 min"],
   [30000, "in under a minute"],

@@ -12,7 +12,10 @@ import { TradeMore } from "./_components/actions";
 import { Messages } from "./_components/messages";
 import { NextStep, PaymentInstructions } from "./_components/next-step";
 import { Timeline } from "./_components/timeline";
-export const metadata = { title: "Trade room" };
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const model = await getTradeRoomModel(await getViewer(), (await params).id);
+  return { title: { absolute: model ? `Trade ${model.ref} · Atlas` : "Trade · Atlas" } };
+}
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params,
     model = await getTradeRoomModel(await getViewer(), id);
@@ -116,7 +119,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   className="shrink-0 text-ink-muted"
                   aria-hidden
                 />
-                {d.title}
+                <span className="min-w-0 flex-1 whitespace-normal">{d.title}</span>
+                <span className="type-body-sm text-ink-muted whitespace-nowrap">{d.label}</span>
               </Link>
             ))}
           </SectionCard>

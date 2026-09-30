@@ -6,7 +6,7 @@ export function ValueAtExit({
 }: {
   steps: { exitLabel: string; classes: { name: string; perShare: string; ratio: number }[] }[];
 }) {
-  const [index, setIndex] = useState(12),
+  const [index, setIndex] = useState(6),
     step = steps[index];
   if (!step) return null;
   return (
@@ -28,15 +28,19 @@ export function ValueAtExit({
           max={24}
           step={1}
           value={[index]}
-          onValueChange={(v) => setIndex(v[0] ?? 12)}
+          onValueChange={(v) => setIndex(v[0] ?? 6)}
         />
+        <p className="type-body-sm text-ink-muted">
+          At the round's valuation every class is worth the same. Lower exits show preferred shares
+          being paid first.
+        </p>
       </div>
       <div className="flex flex-col gap-3 border-t border-line pt-3">
         {step.classes.map((c) => (
           <div key={c.name} className="flex flex-col gap-1">
             <div className="flex justify-between gap-2 type-body-sm">
               <span>{c.name}</span>
-              <span className="type-figure">{c.perShare}</span>
+              <span className="type-figure whitespace-nowrap">{c.perShare}</span>
             </div>
             <div className="h-2 rounded-sm bg-surface-sunken">
               <div

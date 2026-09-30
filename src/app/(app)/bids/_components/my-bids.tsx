@@ -41,7 +41,7 @@ function CounterCard({ row, primary }: { row: MyBidsModel["rows"][number]; prima
             </Button>
           }
           title="Accept the counter?"
-          description={`Your bid becomes ${row.counter.price} per share and stays binding. The seller then decides whether to accept it.`}
+          description={`Your bid becomes ${row.counter.price} per share and stays binding. The seller proposed this price, so they'll confirm the sale shortly.`}
           confirmLabel="Accept counter"
           onConfirm={() => start(() => accept({ bidId: row.id }))}
         />
@@ -90,20 +90,14 @@ export function MyBids({ model: m }: { model: MyBidsModel }) {
                   <table className="w-full type-body-sm">
                     <thead className="bg-surface-sunken text-ink-muted type-label">
                       <tr>
-                        {[
-                          "Listing",
-                          "Price",
-                          "Quantity",
-                          "Min fill",
-                          "Total",
-                          "Window",
-                          "Status",
-                          "Action",
-                        ].map((h) => (
-                          <th key={h} className="px-5 py-3 text-left whitespace-nowrap">
-                            {h}
-                          </th>
-                        ))}
+                        <th className="px-4 py-3 text-left">Listing</th>
+                        <th className="px-4 py-3 text-right">Price</th>
+                        <th className="hidden px-4 py-3 text-right xl:table-cell">Quantity</th>
+                        <th className="hidden px-4 py-3 text-right xl:table-cell">Min fill</th>
+                        <th className="hidden px-4 py-3 text-right xl:table-cell">Total</th>
+                        <th className="hidden px-4 py-3 text-left xl:table-cell">Window</th>
+                        <th className="px-4 py-3 text-left">Status</th>
+                        <th className="px-4 py-3 text-left">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -114,21 +108,31 @@ export function MyBids({ model: m }: { model: MyBidsModel }) {
                             <td className="px-5 py-4">
                               <Link
                                 href={r.listingHref}
-                                className="font-semibold text-atlas-green hover:underline"
+                                className="font-semibold text-atlas-green hover:underline whitespace-nowrap"
                               >
                                 {r.ref}
                               </Link>
                               <p className="text-ink-muted whitespace-nowrap">{r.company}</p>
+                              <p className="type-body-sm text-ink-muted xl:hidden">
+                                {r.quantity} · {r.compactWindow}
+                              </p>
                             </td>
-                            {[r.price, r.quantity, r.minFill, r.total].map((value, i) => (
-                              <td
-                                key={["price", "quantity", "min", "total"][i]}
-                                className="px-5 py-4 whitespace-nowrap text-right"
-                              >
-                                {value}
-                              </td>
-                            ))}
-                            <td className="px-5 py-4 whitespace-nowrap">
+                            <td className="px-4 py-4 whitespace-nowrap text-right">
+                              {r.price}
+                              <span className="block type-body-sm text-ink-muted xl:hidden">
+                                {r.total}
+                              </span>
+                            </td>
+                            <td className="hidden px-4 py-4 whitespace-nowrap text-right xl:table-cell">
+                              {r.quantity}
+                            </td>
+                            <td className="hidden px-4 py-4 whitespace-nowrap text-right xl:table-cell">
+                              {r.minFill}
+                            </td>
+                            <td className="hidden px-4 py-4 whitespace-nowrap text-right xl:table-cell">
+                              {r.total}
+                            </td>
+                            <td className="hidden px-5 py-4 whitespace-nowrap xl:table-cell">
                               {r.closesAt ? (
                                 <Deadline at={r.closesAt} now={m.now} />
                               ) : (

@@ -92,10 +92,10 @@ export async function getBidComposerModel(viewer: Viewer, id: string, dbArg?: Db
       round: company.lastRoundPriceMinor === null ? "—" : money(company.lastRoundPriceMinor),
       roundName: company.lastRoundName,
       fairValue: ref.hidden
-        ? `${ref.band.method === "none" ? "—" : money(ref.band.midMinor)} est.`
-        : ref.band.method === "waterfall"
-          ? `${ref.bandValue} est.`
-          : ref.bandValue,
+        ? ref.band.method === "waterfall"
+          ? ref.bandValue
+          : "Not disclosed"
+        : ref.bandValue,
       lastTrade: ref.hidden ? "Not disclosed" : last ? money(last.priceMinor) : "—",
     },
   };
@@ -117,6 +117,7 @@ export async function getMyBidsModel(viewer: Viewer, dbArg?: Db) {
         money = (p: bigint) => formatMoney(p, l.currency, "perShare");
       return {
         id: b.id,
+        submittedAt: b.submittedAt.toISOString(),
         ref: l.ref,
         listingHref: `/listings/${l.id}`,
         company: c?.name ?? "Company",
@@ -126,6 +127,9 @@ export async function getMyBidsModel(viewer: Viewer, dbArg?: Db) {
         total: formatMoney(b.priceMinor * b.quantity, l.currency),
         closesAt: l.status === "Live" ? (l.windowClosesAt?.toISOString() ?? null) : null,
         closedLabel: l.windowClosesAt ? `Closed ${formatDate(l.windowClosesAt)}` : "—",
+        compactWindow: l.windowClosesAt
+          ? `${l.status === "Live" ? "Closes" : "Closed"} ${formatDate(l.windowClosesAt)}`
+          : "—",
         badges: bidBadges(b, l.status, l.currency, viewer.now),
         active: ["Submitted", "Countered", "Backup"].includes(b.status),
         action:
@@ -146,6 +150,7 @@ export async function getMyBidsModel(viewer: Viewer, dbArg?: Db) {
       };
     }),
   );
+  rows.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
   return { now: viewer.now.toISOString(), rows, counters: rows.filter((r) => r.counter !== null) };
 }
 export type MyBidsModel = Awaited<ReturnType<typeof getMyBidsModel>>;

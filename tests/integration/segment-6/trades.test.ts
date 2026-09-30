@@ -309,7 +309,7 @@ it("autopilot settles after the human wire, with two approvers, escrow and water
       " (auto-pilot)",
     );
   expect(model?.timeline[5]?.details).toHaveLength(2);
-  expect(model?.escrow.held).toBe("Nothing held yet.");
+  expect(model?.escrow.held).toMatch(/^Released to seller AED 90,000 on /);
   expect((await escrow.forTrade(db, sid, t.id)).map((e) => e.kind)).toEqual([
     "wire_sent",
     "funded",

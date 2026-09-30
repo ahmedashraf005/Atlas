@@ -74,7 +74,7 @@ export function formatRelative(target: Date, now: Date): string {
   if (duration < 60_000) return diff > 0 ? "in under a minute" : "just now";
   const label =
     duration >= 172_800_000
-      ? `${Math.floor(duration / 86_400_000)} days`
+      ? `${Math.round(duration / 86_400_000)} days`
       : duration >= 3_600_000
         ? `${Math.floor(duration / 3_600_000)}h`
         : `${Math.floor(duration / 60_000)} min`;

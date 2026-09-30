@@ -10,9 +10,11 @@ import {
   formatRelative,
   formatShares,
 } from "@/lib/format";
+import { tradeBadge } from "@/lib/trade-display";
 import { type Db, getDb } from "@/server/db/client";
 import { companyReference } from "@/server/read/company";
 import { listingBadges } from "@/server/read/holdings";
+import * as audit from "@/server/repositories/audit";
 import * as bids from "@/server/repositories/bids";
 import * as companies from "@/server/repositories/companies";
 import * as listings from "@/server/repositories/listings";
@@ -111,20 +113,15 @@ export async function getListingModel(viewer: Viewer, id: string, dbArg?: Db) {
           quantity: formatShares(t.quantity, "table"),
           price: money(t.priceMinor),
           total: formatMoney(t.quantity * t.priceMinor, listing.currency),
-          statusLabel: t.status.replace(/([a-z])([A-Z])/g, "$1 $2").replace("Rofr", "ROFR"),
-          statusTone:
-            t.status === "Settled"
-              ? ("success" as const)
-              : t.status === "Cancelled" || t.status === "RofrExercised"
-                ? ("neutral" as const)
-                : t.status === "Disputed"
-                  ? ("danger" as const)
-                  : ("info" as const),
+          statusLabel: tradeBadge(t.status).text,
+          statusTone: tradeBadge(t.status).tone,
         };
       }),
     );
   const backup = allBids.find((b) => b.status === "Backup"),
     backupUser = backup ? await users.find(db, sid, backup.buyerId) : null;
+  const withdrawnAt =
+    listing.status === "Withdrawn" ? await audit.listingWithdrawnAt(db, sid, id) : null;
   return {
     redirect: null,
     id,
@@ -144,10 +141,21 @@ export async function getListingModel(viewer: Viewer, id: string, dbArg?: Db) {
     reserve: money(listing.reservePriceMinor),
     currency: listing.currency,
     bidCount: `${count}`,
-    bidLabel: `${count} ${listing.status === "Live" ? "sealed" : "to review"}`,
+    bidLabel:
+      listing.status === "Live"
+        ? `${count} sealed`
+        : review
+          ? `${count} to review`
+          : complete
+            ? `${allBids.filter((b) => b.status === "Accepted").length} accepted`
+            : "—",
     closesAt: listing.status === "Live" ? (listing.windowClosesAt?.toISOString() ?? null) : null,
     closeLabel: listing.windowClosesAt ? formatDateTime(listing.windowClosesAt) : "—",
-    closedLabel: listing.windowClosesAt ? `Closed ${formatDate(listing.windowClosesAt)}` : "—",
+    closedLabel: withdrawnAt
+      ? `Withdrawn ${formatDate(withdrawnAt)}`
+      : listing.windowClosesAt
+        ? `Closed ${formatDate(listing.windowClosesAt)}`
+        : "—",
     now: viewer.now.toISOString(),
     decisionLabel: deadline
       ? `Decide by ${formatDateTime(deadline)} (${formatRelative(deadline, viewer.now)}). After that the listing expires and your shares are released.`

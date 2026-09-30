@@ -2,7 +2,12 @@ import "server-only";
 import { z } from "zod";
 import { verifyChain } from "@/domain/audit";
 import { can } from "@/domain/authz";
-import { describeAction, describeActor, diffSnapshot } from "@/lib/audit-display";
+import {
+  describeAction,
+  describeActor,
+  diffSnapshot,
+  displayAuditValue,
+} from "@/lib/audit-display";
 import { formatDateTime } from "@/lib/format";
 import { type Db, getDb } from "@/server/db/client";
 import { entityLinks } from "@/server/read/consoles";
@@ -65,6 +70,7 @@ export async function getAuditModel(viewer: Viewer, params: AuditParams = {}, da
     `/ops/audit?${new URLSearchParams({ page: String(p), ...(entity ? { entity } : {}), ...(action ? { action } : {}) })}`;
   return {
     verified: result.ok,
+    count: String(entries.length),
     status: result.ok
       ? `Chain verified · ${result.count} entries · head ${checkpoint.headHash.slice(0, 12)}…`
       : `Chain broken at entry #${result.brokenAtSeq} · ${reason}`,
@@ -78,7 +84,8 @@ export async function getAuditModel(viewer: Viewer, params: AuditParams = {}, da
       at: formatDateTime(e.at),
       actor: describeActor(e, people),
       action: describeAction(e.action),
-      entity: links.get(e.entityId)?.label ?? e.entityId,
+      entity:
+        links.get(e.entityId)?.label ?? (e.entity === "sandbox" ? "Demo sandbox" : e.entityId),
       href: links.get(e.entityId)?.href ?? null,
       hash: e.hash,
       shortHash: e.hash.slice(0, 10),
@@ -88,7 +95,11 @@ export async function getAuditModel(viewer: Viewer, params: AuditParams = {}, da
         !checkpointMismatch &&
         result.reason === "HASH_MISMATCH" &&
         result.brokenAtSeq === e.seq,
-      diff: diffSnapshot(e.before, e.after),
+      diff: diffSnapshot(e.before, e.after).map((d) => ({
+        ...d,
+        from: displayAuditValue(d.from),
+        to: displayAuditValue(d.to),
+      })),
     })),
   };
 }

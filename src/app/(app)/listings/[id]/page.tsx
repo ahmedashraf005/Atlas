@@ -7,11 +7,18 @@ import { Figure } from "@/components/atlas/figure";
 import { PageHeader } from "@/components/atlas/page-header";
 import { SectionCard } from "@/components/atlas/section-card";
 import { StatusBadge } from "@/components/atlas/status-badge";
+import { plural } from "@/lib/plural";
+import { getDb } from "@/server/db/client";
 import { getListingModel } from "@/server/read/listing";
+import * as listings from "@/server/repositories/listings";
 import { getViewer } from "@/server/viewer";
 import { BidLadder } from "./_components/bid-ladder";
 import { CompetingBid } from "./_components/competing-bid";
-export const metadata = { title: "Listing" };
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const viewer = await getViewer();
+  const listing = await listings.findPublic(await getDb(), viewer.sandboxId, (await params).id);
+  return { title: { absolute: listing ? `Listing ${listing.ref} · Atlas` : "Listing · Atlas" } };
+}
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const m = await getListingModel(await getViewer(), (await params).id);
   if (!m) notFound();
@@ -54,7 +61,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       {m.status === "Live" && (
         <SectionCard title="Sealed bids">
           <p className="type-body">
-            {m.bidCount} bids received. They stay sealed until the window closes on {m.closeLabel}.
+            {plural(Number(m.bidCount), "bid")} received. They stay sealed until the window closes
+            on {m.closeLabel}.
           </p>
           {m.editable && <CompetingBid listingId={m.id} />}
         </SectionCard>

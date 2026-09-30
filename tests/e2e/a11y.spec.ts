@@ -12,8 +12,14 @@ for (const theme of ["light", "dark"] as const) {
     ]);
     async function scan(title: string) {
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      const dynamicTitles: Record<string, string> = {
+        Company: "Falaj Robotics · Atlas",
+        Listing: "Listing L-2031 · Atlas",
+        "Trade room": "Trade T-1042 · Atlas",
+      };
       await expect(page).toHaveTitle(
-        title === "Private shares, settled properly" ? title : `${title} · Atlas`,
+        dynamicTitles[title] ??
+          (title === "Private shares, settled properly" ? title : `${title} · Atlas`),
       );
       if (title !== "Private shares, settled properly")
         await expect(page.getByRole("combobox", { name: "View as" })).toBeEnabled();
@@ -65,14 +71,14 @@ for (const theme of ["light", "dark"] as const) {
     await page.goto("/");
     await page
       .getByRole("button")
-      .filter({ hasText: "Investor #B-117 · individual investor" })
+      .filter({ hasText: "Buyer B · Investor #B-117 · Individual investor" })
       .click();
     await expect(page).toHaveURL("/discover");
     await page.goto("/trades");
     await page.getByRole("link", { name: "T-1042", exact: true }).click();
     await scan("Trade room");
     await page.goto("/");
-    await page.getByRole("button").filter({ hasText: "Falaj Robotics · CFO" }).click();
+    await page.getByRole("button").filter({ hasText: "Company · Falaj Robotics CFO" }).click();
     await scan("Company console");
     await page.goto("/company/policy");
     await scan("Transfer policy");
@@ -80,7 +86,7 @@ for (const theme of ["light", "dark"] as const) {
     await scan("Transfer policy");
     await page.getByRole("button", { name: "Cancel", exact: true }).click();
     await page.goto("/");
-    await page.getByRole("button").filter({ hasText: "Atlas compliance" }).click();
+    await page.getByRole("button").filter({ hasText: "Operator · Atlas Compliance" }).click();
     await scan("Operations");
     await page.goto("/ops/audit");
     await scan("Audit log");

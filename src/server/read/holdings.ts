@@ -6,6 +6,7 @@ import { evaluateSellerEligibility } from "@/domain/policy";
 import { fairValueBand, fallbackPriceForClass } from "@/domain/pricing";
 import type { Holding, HoldingStatus, ListingStatus } from "@/domain/types";
 import { formatDate, formatMoney, formatRelative, formatShares } from "@/lib/format";
+import { plural } from "@/lib/plural";
 import { type Db, getDb } from "@/server/db/client";
 import * as bids from "@/server/repositories/bids";
 import * as companies from "@/server/repositories/companies";
@@ -108,28 +109,28 @@ export async function holdingFacts(viewer: Viewer, holding: Holding, db: Db) {
         band.method === "trades"
           ? `Fair value ${bandValue} · Last trade ${last ? money(last.priceMinor) : "—"}`
           : band.method === "waterfall"
-            ? `Estimate ${bandValue} from the last round`
+            ? `Round-implied ${bandValue}`
             : "No price reference yet",
       round: company.lastRoundPriceMinor === null ? "—" : money(company.lastRoundPriceMinor),
       roundCaption: `${company.lastRoundName} preferred`,
       fairValue: bandValue,
-      fairHeader: band.method === "trades" ? "Fair-value band" : "Estimated value",
+      fairHeader: band.method === "trades" ? "Fair-value band" : "Round-implied value",
       fairCaption:
         band.method === "trades"
-          ? `From ${band.tradeCount} trades in the last 180 days`
+          ? `From ${plural(band.tradeCount, "trade")} in the last 180 days`
           : band.method === "waterfall"
-            ? "Estimate from the last round's valuation"
+            ? "Value per share if the company sold at its last round's valuation. Ordinary shares usually trade at a discount to this."
             : "No price reference yet",
       last: last ? money(last.priceMinor) : visible ? "—" : "Not disclosed",
       lastCaption: last
         ? `${formatShares(last.quantity, "prose")} · ${formatDate(last.executedAt)}`
         : visible
-          ? "No trades yet"
+          ? "No Atlas trades yet."
           : "The company limits who can see trade prices.",
       demand:
         demand === 0
           ? "No buyers with matching mandates yet"
-          : `${demand} ${demand === 1 ? "buyer has" : "buyers have"} mandates matching ${company.name}`,
+          : `${plural(demand, "buyer has a mandate", "buyers have mandates")} matching ${company.name}`,
     },
   };
 }
@@ -156,7 +157,7 @@ export async function getHoldingsModel(viewer: Viewer, dbArg?: Db) {
           { label: "Total", value: formatShares(h.quantity, "table") },
           { label: "Listed or in trades", value: formatShares(h.reservedQty, "table") },
           { label: "Sold", value: formatShares(h.soldQty, "table") },
-          { label: "Available", value: formatShares(availableQty(h), "table") },
+          { label: "Not listed", value: formatShares(availableQty(h), "table") },
         ],
         eligibility: {
           message: f.eligibility.ok

@@ -17,7 +17,7 @@ test("Buyer A's idle sandbox leaves Buyer B's ROFR decision for the company", as
   await expect(page).toHaveURL("/discover");
   await page.waitForTimeout(45000);
   await page.getByRole("combobox", { name: "View as" }).click();
-  await page.getByRole("option", { name: "Company admin · Falaj Robotics" }).click();
+  await page.getByRole("option", { name: "Company · Falaj Robotics CFO" }).click();
   await expect(page).toHaveURL("/company");
   await expect(page.getByText("Decisions waiting", { exact: true }).locator("..")).toContainText(
     "2",

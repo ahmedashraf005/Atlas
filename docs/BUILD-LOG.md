@@ -1,6 +1,6 @@
 # Atlas build log
 
-This record summarizes the checked-in segment reports and the Segment 8 specification supplied in the task conversation. It records implementation and verification; it is not the AI disclosure.
+This record summarizes the segment and fix prompts and their implementation reports. It records implementation and verification; it is not the AI disclosure.
 
 ## Segment 0 — Foundation and design system
 
@@ -26,7 +26,7 @@ Goal: express marketplace rules as pure TypeScript transition tables and functio
 
 Verification: domain/unit/property tests with the required coverage gate, architecture guards, full check and unchanged foundation E2E. The report records local filesystem recovery during verification.
 
-Decisions: the transition engine injects the actor, audit verification accepts a trusted head checkpoint, and only the lowest-priced allocation receives a backup. Prompt: supplied in the task conversation; no file in this checkout. Report: [segment-1.md](../prompts/reports/segment-1.md).
+Decisions: the transition engine injects the actor, audit verification accepts a trusted head checkpoint, and only the lowest-priced allocation receives a backup. Prompt: [segment-1.md](../prompts/segment-1.md). Report: [segment-1.md](../prompts/reports/segment-1.md).
 
 ## Segment 2 — Data, sessions and action pipeline
 
@@ -40,7 +40,7 @@ Goal: persist the domain, isolate demo visitors and apply effects atomically.
 
 Verification: migration drift, PGlite smoke and concurrency/isolation/constraint/backend integration tests; full check and E2E sequentially. No Neon URL was available in that task.
 
-Decisions: one module-level Neon Pool with short idle timeouts; yearly caps count settled sales plus reserved shares; custom jobs use savepoints. The prior concurrent-build stop was a false failure, corrected with sequential gates. Prompt: supplied in conversation; no file in this checkout. Report: [segment-2.md](../prompts/reports/segment-2.md).
+Decisions: one module-level Neon Pool with short idle timeouts; yearly caps count settled sales plus reserved shares; custom jobs use savepoints. The prior concurrent-build stop was a false failure, corrected with sequential gates. Prompt: [segment-2.md](../prompts/segment-2.md). Report: [segment-2.md](../prompts/reports/segment-2.md).
 
 ## Segment 3 — Buyer discovery
 
@@ -80,7 +80,7 @@ Goal: take either side from a sealed bid to a created trade.
 
 Verification: integer helper/badge unit tests, PGlite authorization/privacy/allocation/automation scenarios, full check and buyer/seller/mobile E2E.
 
-Decisions: custom seller jobs reuse existing text columns; competing bids execute immediately rather than as another job kind. Idempotency conflicts return the existing bid. Prompt: supplied in conversation; no file in this checkout. Report: [segment-5.md](../prompts/reports/segment-5.md).
+Decisions: custom seller jobs reuse existing text columns; competing bids execute immediately rather than as another job kind. Idempotency conflicts return the existing bid. Prompt: [segment-5.md](../prompts/segment-5.md). Report: [segment-5.md](../prompts/reports/segment-5.md).
 
 ## Segment 6 — Trades and trade room
 
@@ -93,7 +93,7 @@ Goal: complete company approvals, escrow and settlement from one trade room.
 
 Verification: state/role unit matrix exercises offered events through the machines; PGlite full paths, four-eyes and isolation tests; full check, both golden-path E2E and responsive visual review.
 
-Decisions: historical seed timeline data is explicitly labelled Demo snapshot; new history uses real audit actors. Existing domain-compatible cancellation events were retained. Prompt: supplied in conversation; no file in this checkout. Report: [segment-6.md](../prompts/reports/segment-6.md).
+Decisions: historical seed timeline data is explicitly labelled Demo snapshot; new history uses real audit actors. Existing domain-compatible cancellation events were retained. Prompt: [segment-6.md](../prompts/segment-6.md). Report: [segment-6.md](../prompts/reports/segment-6.md).
 
 ## Segment 7 — Company/operator consoles and audit
 
@@ -107,7 +107,7 @@ Goal: expose company decisions, transfer rules, operations queues and integrity 
 
 Verification: PGlite decision/policy/queue/tamper scenarios, action enumeration and guard self-tests; full check then console E2E, and desktop/mobile light/dark visual review.
 
-Decisions: operator re-check excludes the reviewed listing's own reservation; the seller table gained the required rejection reason. Tampering uses existing operator audit permission. Prompt: supplied in conversation after the missing-file stop; no file in this checkout. Report: [segment-7.md](../prompts/reports/segment-7.md).
+Decisions: operator re-check excludes the reviewed listing's own reservation; the seller table gained the required rejection reason. Tampering uses existing operator audit permission. Prompt: [segment-7.md](../prompts/segment-7.md). Report: [segment-7.md](../prompts/reports/segment-7.md).
 
 ## Segment 8 — Product finish, hardening and deployment preparation
 
@@ -121,22 +121,27 @@ Goal: finish the explanatory product surfaces, verification and deployment docum
 
 Verification: unit/guard and PGlite integration tests, the full check, browser/CSP/axe tests in both themes, and local production smoke; the final command results are recorded in the Segment 8 report.
 
-Decisions: inline styles remain permitted for Recharts/Mermaid; Next 16.3.7 was not published at registry inspection. Mermaid's vulnerable transitive lodash-es is pinned to a patched same-major release. The showcase is now unconditionally unavailable in production; its existing browser checks run on a development server after the production build finishes. Strict action parsing strips Next's reserved FormData metadata before validating user fields. Production deployment and Neon migration/smoke are manual runbook steps, not performed by the task. Prompt: supplied in conversation after the missing-file stop; no file in this checkout. Report: [segment-8.md](../prompts/reports/segment-8.md).
+Decisions: inline styles remain permitted for Recharts/Mermaid; Next 16.3.7 was not published at registry inspection. Mermaid's vulnerable transitive lodash-es is pinned to a patched same-major release. The showcase is now unconditionally unavailable in production; its existing browser checks run on a development server after the production build finishes. Strict action parsing strips Next's reserved FormData metadata before validating user fields. Production deployment and Neon migration/smoke are manual runbook steps, not performed by the task. Prompt: [segment-8.md](../prompts/segment-8.md). Report: [segment-8.md](../prompts/reports/segment-8.md).
 
 ## Prompt and report inventory
 
-Only prompt files actually present are linked. Specifications absent from the checkout were supplied in the task conversation, as their reports record.
+The inventory links each specification and its report.
 
 | Segment | Prompt | Report |
 | --- | --- | --- |
 | 0 | [prompts/segment-0.md](../prompts/segment-0.md) | [report](../prompts/reports/segment-0.md) |
-| 1 | Conversation specification; file absent | [report](../prompts/reports/segment-1.md) |
-| 2 | Conversation specification; file absent | [report](../prompts/reports/segment-2.md) |
+| 1 | [prompts/segment-1.md](../prompts/segment-1.md) | [report](../prompts/reports/segment-1.md) |
+| 2 | [prompts/segment-2.md](../prompts/segment-2.md) | [report](../prompts/reports/segment-2.md) |
 | 3 | [prompts/segment-3.md](../prompts/segment-3.md) | [report](../prompts/reports/segment-3.md) |
 | 4 | [prompts/segment-4.md](../prompts/segment-4.md) | [report](../prompts/reports/segment-4.md) |
-| 5 | Conversation specification; file absent | [report](../prompts/reports/segment-5.md) |
-| 6 | Conversation specification; file absent | [report](../prompts/reports/segment-6.md) |
-| 7 | Conversation specification; file absent | [report](../prompts/reports/segment-7.md) |
-| 8 | Conversation specification; file absent | [report](../prompts/reports/segment-8.md) |
+| 5 | [prompts/segment-5.md](../prompts/segment-5.md) | [report](../prompts/reports/segment-5.md) |
+| 6 | [prompts/segment-6.md](../prompts/segment-6.md) | [report](../prompts/reports/segment-6.md) |
+| 7 | [prompts/segment-7.md](../prompts/segment-7.md) | [report](../prompts/reports/segment-7.md) |
+| 8 | [prompts/segment-8.md](../prompts/segment-8.md) | [report](../prompts/reports/segment-8.md) |
 
 The additional [repository-move report](../prompts/reports/repo-move.md) records the relocation away from iCloud-synced paths.
+
+## Fixes
+
+- Fix A: [prompt](../prompts/fix-a.md) · [report](../prompts/reports/fix-a.md).
+- Fix B: [prompt](../prompts/fix-b.md) · [report](../prompts/reports/fix-b.md).

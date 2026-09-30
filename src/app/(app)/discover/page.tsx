@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { plural } from "@/lib/plural";
 import { getDiscoverModel } from "@/server/read/discover";
 import { getViewer } from "@/server/viewer";
 export const metadata = { title: "Discover" };
@@ -40,9 +41,10 @@ export default async function Page({
           </p>
         }
       />
-      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-4">
           <form
+            key={JSON.stringify(model.filters)}
             method="get"
             className="flex flex-wrap items-end gap-3 rounded-md border border-line bg-surface p-5"
           >
@@ -109,22 +111,22 @@ export default async function Page({
               <Link href="/discover">Clear</Link>
             </Button>
           </form>
-          <SectionCard title="Companies" aside={`${model.companies.length} companies`} flush>
+          <SectionCard
+            title="Companies"
+            aside={plural(model.companies.length, "company", "companies")}
+            flush
+          >
             {model.companies.length ? (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {[
-                      "Company",
-                      "Last round",
-                      "Round price",
-                      "Fair value (ordinary)",
-                      "Open listings",
-                      "Mandates",
-                      "Action",
-                    ].map((x) => (
-                      <TableHead key={x}>{x}</TableHead>
-                    ))}
+                    <TableHead>Company</TableHead>
+                    <TableHead className="hidden xl:table-cell">Last round</TableHead>
+                    <TableHead className="hidden xl:table-cell">Round price</TableHead>
+                    <TableHead>Fair value (ordinary)</TableHead>
+                    <TableHead>Open listings</TableHead>
+                    <TableHead>Mandates</TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -140,15 +142,20 @@ export default async function Page({
                         <div className="type-body-sm text-ink-muted">
                           {c.sector} · {c.stage}
                         </div>
+                        <div className="type-body-sm text-ink-muted xl:hidden">
+                          {c.lastRound} · {c.roundPrice}
+                        </div>
                       </TableCell>
-                      <TableCell>{c.lastRound}</TableCell>
-                      <TableCell className="text-right type-figure">{c.roundPrice}</TableCell>
-                      <TableCell className="text-right">{c.fairValue}</TableCell>
+                      <TableCell className="hidden xl:table-cell">{c.lastRound}</TableCell>
+                      <TableCell className="hidden text-right type-figure xl:table-cell">
+                        {c.roundPrice}
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">{c.fairValue}</TableCell>
                       <TableCell className="text-right">{c.openListings}</TableCell>
                       <TableCell>
                         {c.matches && <StatusBadge tone="success">Matches</StatusBadge>}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">
                         <Button asChild variant="secondary" size="sm">
                           <Link href={`/companies/${c.slug}`}>View</Link>
                         </Button>

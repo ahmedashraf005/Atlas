@@ -11,7 +11,15 @@ import {
 } from "@/components/ui/table";
 import { getDocumentModel } from "@/server/read/company";
 import { getViewer } from "@/server/viewer";
-export const metadata = { title: "Company document" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string; documentId: string }>;
+}) {
+  const { slug, documentId } = await params;
+  const document = await getDocumentModel(await getViewer(), slug, documentId);
+  return { title: { absolute: document ? `${document.title} · Atlas` : "Document · Atlas" } };
+}
 export default async function Page({
   params,
 }: {
@@ -34,7 +42,9 @@ export default async function Page({
       <article className="relative overflow-hidden rounded-md border border-line bg-surface p-6 md:p-10">
         <Watermark text={document.watermark} />
         <div className="relative z-10 flex flex-col gap-6">
-          <h2 className="type-heading-2">{document.heading}</h2>
+          {document.heading !== document.title && (
+            <h2 className="type-heading-2">{document.heading}</h2>
+          )}
           {document.paragraphs.map((p) => (
             <p key={p} className="type-body">
               {p}

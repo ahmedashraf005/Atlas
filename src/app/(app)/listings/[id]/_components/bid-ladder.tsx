@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { allocationPreview, bidMaths } from "@/lib/bid-maths";
 import { formatMoney, formatShares } from "@/lib/format";
+import { plural } from "@/lib/plural";
 import type { ListingModel } from "@/server/read/listing";
 
 function Counter({ row, model: m }: { row: ListingModel["ladder"][number]; model: ListingModel }) {
@@ -92,7 +93,7 @@ export function BidLadder({ model: m }: { model: ListingModel }) {
   useEffect(() => {
     if (state.status === "success") {
       toast.success(
-        `Accepted ${state.data.count} bids. Trades ${state.data.refs.join(", ")} created.`,
+        `Accepted ${plural(Number(state.data.count), "bid")}. Trades ${state.data.refs.join(", ")} created.`,
       );
       setSelected([]);
     }
@@ -117,21 +118,15 @@ export function BidLadder({ model: m }: { model: ListingModel }) {
               <table className="w-full type-body-sm">
                 <thead className="bg-surface-sunken type-label text-ink-muted">
                   <tr>
-                    {[
-                      "Select",
-                      "Rank",
-                      "Buyer",
-                      "Price",
-                      "Quantity / Min fill",
-                      "Total",
-                      "Rationale",
-                      "Status",
-                      "Action",
-                    ].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left whitespace-nowrap">
-                        {h}
-                      </th>
-                    ))}
+                    <th className="px-3 py-3 text-left">Select</th>
+                    <th className="hidden px-3 py-3 text-left xl:table-cell">Rank</th>
+                    <th className="sticky left-0 bg-surface-sunken px-3 py-3 text-left">Buyer</th>
+                    <th className="px-3 py-3 text-left">Price</th>
+                    <th className="px-3 py-3 text-left">Quantity / Min fill</th>
+                    <th className="hidden px-3 py-3 text-left xl:table-cell">Total</th>
+                    <th className="hidden px-3 py-3 text-left xl:table-cell">Rationale</th>
+                    <th className="px-3 py-3 text-left">Status</th>
+                    <th className="px-3 py-3 text-left">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -146,8 +141,8 @@ export function BidLadder({ model: m }: { model: ListingModel }) {
                           />
                         )}
                       </td>
-                      <td className="px-4 py-4">{b.rank}</td>
-                      <td className="px-4 py-4 whitespace-nowrap">
+                      <td className="hidden px-3 py-4 xl:table-cell">{b.rank}</td>
+                      <td className="sticky left-0 bg-surface px-3 py-4 whitespace-nowrap">
                         <p className="font-semibold">{b.handle}</p>
                         <StatusBadge tone="neutral">{b.certainty}</StatusBadge>
                       </td>
@@ -161,8 +156,10 @@ export function BidLadder({ model: m }: { model: ListingModel }) {
                       <td className="px-4 py-4 whitespace-nowrap">
                         {b.quantity} / {b.minFill}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-right">{b.total}</td>
-                      <td className="px-4 py-4">
+                      <td className="hidden px-4 py-4 whitespace-nowrap text-right xl:table-cell">
+                        {b.total}
+                      </td>
+                      <td className="hidden px-4 py-4 xl:table-cell">
                         {b.rationale ? (
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -266,7 +263,7 @@ export function BidLadder({ model: m }: { model: ListingModel }) {
                   Accept selected bids
                 </Button>
               }
-              title={`Accept ${preview.result.allocations.length} bids?`}
+              title={`Accept ${plural(preview.result.allocations.length, "bid")}?`}
               description={`Trades are created for ${preview.allocated}, total ${preview.total}. ${m.company} then has ${m.rofrDays} days to decide on its right of first refusal. You can't undo this.`}
               confirmLabel="Accept bids"
               onConfirm={() =>
@@ -281,7 +278,7 @@ export function BidLadder({ model: m }: { model: ListingModel }) {
             />
             <ConfirmDialog
               trigger={
-                <Button variant="danger" disabled={pending || busy}>
+                <Button variant="secondary" className="text-danger" disabled={pending || busy}>
                   Decline all bids
                 </Button>
               }

@@ -122,6 +122,7 @@ export function DemoControls({
           />
         )}
         <DropdownMenuCheckboxItem
+          className="pl-2 pr-8 [&>span]:left-auto [&>span]:right-2"
           checked={rofrMode === "exercise"}
           disabled={busy}
           onCheckedChange={(value) =>
@@ -146,7 +147,7 @@ export function DemoControls({
     </DropdownMenu>
   );
   return (
-    <div className="flex min-w-0 shrink-0 items-center gap-2">
+    <div className="flex min-w-0 shrink-0 items-center gap-2 py-1">
       <section
         aria-label="Persona and time controls"
         className="hidden shrink-0 items-center gap-2 py-1 lg:flex"

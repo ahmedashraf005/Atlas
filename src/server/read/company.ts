@@ -2,6 +2,7 @@ import "server-only";
 import type { Tone } from "@/components/atlas/status-badge";
 import { DEMO_DOCUMENTS } from "@/config/demo-documents";
 import { can } from "@/domain/authz";
+import { evaluateBuyer } from "@/domain/policy";
 import { fairValueBand, fallbackPriceForClass, waterfall } from "@/domain/pricing";
 import type { ShareClass } from "@/domain/types";
 import {
@@ -12,12 +13,15 @@ import {
   formatRelative,
   formatShares,
 } from "@/lib/format";
+import { plural } from "@/lib/plural";
+import { INVESTOR_LABELS } from "@/lib/policy-display";
 import { type Db, getDb } from "@/server/db/client";
 import * as companies from "@/server/repositories/companies";
 import * as discovery from "@/server/repositories/discovery";
 import * as documents from "@/server/repositories/documents";
 import * as grants from "@/server/repositories/grants";
 import * as mandates from "@/server/repositories/mandates";
+import { buyerProfile } from "@/server/repositories/parties";
 import * as prints from "@/server/repositories/prints";
 import * as qa from "@/server/repositories/qa";
 import * as users from "@/server/repositories/users";
@@ -117,7 +121,7 @@ export async function companyReference(
       ? "—"
       : band.method === "trades"
         ? `${money(band.lowMinor)}–${money(band.highMinor).split(" ")[1]}`
-        : money(band.midMinor);
+        : `Round-implied ${money(band.midMinor)}`;
   return {
     classes,
     policy,
@@ -146,14 +150,18 @@ export async function getCompanyModel(viewer: Viewer, slug: string, dbArg?: Db) 
   const mine = ownBids.filter((b) => ["Submitted", "Countered", "Backup"].includes(b.status));
   const buyer = viewer.user.role === "buyer",
     approved = ref.grant?.status === "approved";
-  const matching = buyer
-    ? allMandates.find(
-        (m) =>
-          m.buyerId === viewer.user.id &&
-          m.sectors.includes(company.sector) &&
-          m.stages.includes(company.stage),
-      )
-    : undefined;
+  const viewerRow = allUsers.find((u) => u.id === viewer.user.id);
+  const profile = viewerRow ? buyerProfile(viewerRow) : null;
+  const buyerPolicy = profile ? evaluateBuyer({ policy: ref.policy, buyer: profile }) : null;
+  const matching =
+    buyer && buyerPolicy?.ok
+      ? allMandates.find(
+          (m) =>
+            m.buyerId === viewer.user.id &&
+            m.sectors.includes(company.sector) &&
+            m.stages.includes(company.stage),
+        )
+      : undefined;
   const listingRows = allListings
     .filter(
       (l) =>
@@ -240,33 +248,41 @@ export async function getCompanyModel(viewer: Viewer, slug: string, dbArg?: Db) 
   const bandCaption = ref.hidden
     ? "The company limits who can see trade prices."
     : ref.band.method === "trades"
-      ? `From ${ref.band.tradeCount} trades in the last 180 days`
+      ? `From ${plural(ref.band.tradeCount, "trade")} in the last 180 days`
       : ref.band.method === "waterfall"
-        ? "Estimate from the last round's valuation"
+        ? "Value per share if the company sold at its last round's valuation. Ordinary shares usually trade at a discount to this."
         : "No price reference yet";
   return {
     id: company.id,
     slug,
     name: company.name,
     meta: `${company.sector} · ${company.stage} · Incorporated in ${company.incorporation}`,
-    openListings: open ? `${open} open listings` : null,
+    openListings: open ? plural(open, "open listing") : null,
     matchingMandate: matching?.name ?? null,
     isBuyer: buyer,
     canAsk: buyer && approved,
-    requestAccess: buyer && !approved,
+    requestAccess: buyer && !ref.grant,
+    approvedAccess: approved,
     stats: {
       round: {
         value: company.lastRoundPriceMinor === null ? "—" : ref.money(company.lastRoundPriceMinor),
         caption: `${company.lastRoundName} preferred · ${company.lastRoundDate ? formatDate(company.lastRoundDate).split(" ").slice(1).join(" ") : "—"}`,
       },
-      band: { value: ref.bandValue, caption: bandCaption },
+      band: {
+        label:
+          ref.band.method === "waterfall" && !ref.hidden
+            ? "Round-implied estimate · ordinary shares"
+            : "Fair-value band · ordinary shares",
+        value: ref.bandValue,
+        caption: bandCaption,
+      },
       last: {
         value: ref.hidden ? "Not disclosed" : last ? ref.money(last.priceMinor) : "—",
         caption: ref.hidden
           ? "The company limits who can see trade prices."
           : last
             ? `${formatShares(last.quantity, "prose").replace(" shares", " ordinary shares")} · ${formatDate(last.executedAt)}`
-            : "No trades yet",
+            : "No Atlas trades yet.",
       },
       terms: [
         { label: "Right of first refusal", value: `${ref.policy.rofrDays} days` },
@@ -274,27 +290,14 @@ export async function getCompanyModel(viewer: Viewer, slug: string, dbArg?: Db) 
         { label: "Buyer joinder", value: "Required" },
         {
           label: "Eligible buyers",
-          value:
-            ref.policy.allowedBuyerTypes.length === 4
-              ? "All professional investors"
-              : ref.policy.allowedBuyerTypes
-                  .map(
-                    (t) =>
-                      ({
-                        family_office: "Family offices",
-                        fund: "funds",
-                        hnwi: "individual investors",
-                        angel_syndicate: "angel syndicates",
-                      })[t],
-                  )
-                  .join(", "),
+          value: ref.policy.allowedBuyerTypes.map((t) => INVESTOR_LABELS[t]).join(", "),
         },
       ],
     },
     chart: {
       points: chartPoints,
       ticks: monthlyTicks(viewer.now),
-      hidden: !ref.visible,
+      hidden: ref.hidden,
       band:
         ref.hidden || ref.band.method === "none"
           ? null
@@ -305,7 +308,7 @@ export async function getCompanyModel(viewer: Viewer, slug: string, dbArg?: Db) 
       start: viewer.now.getTime() - 180 * DAY,
       end: viewer.now.getTime(),
       aside: `Ordinary shares · ${company.currency} per share · last 180 days`,
-      ariaLabel: `${chartPoints.length} Atlas trades between ${chartPoints[0]?.date ?? "—"} and ${chartPoints.at(-1)?.date ?? "—"} against a fair-value band of ${ref.bandValue}`,
+      ariaLabel: `${plural(chartPoints.length, "Atlas trade")} between ${chartPoints[0]?.date ?? "—"} and ${chartPoints.at(-1)?.date ?? "—"} against a fair-value band of ${ref.bandValue}`,
     },
     exit:
       company.lastRoundPostMoneyMinor === null
@@ -327,6 +330,12 @@ export async function getCompanyModel(viewer: Viewer, slug: string, dbArg?: Db) 
       })),
     info: {
       status: canInfo ? ("approved" as const) : (ref.grant?.status ?? "none"),
+      denial:
+        ref.grant?.status === "denied" &&
+        !buyerPolicy?.failures.some((f) => f.code === "BUYER_BLOCKED") &&
+        buyerPolicy?.failures.some((f) => f.code === "BUYER_TYPE_NOT_ALLOWED")
+          ? `${company.name} accepts only ${ref.policy.allowedBuyerTypes.map((t) => INVESTOR_LABELS[t]).join(", ")}.`
+          : "The company has restricted access to its information.",
       nda: ref.grant ? `NDA accepted ${formatDate(ref.grant.requestedAt)}` : null,
       documents: canInfo
         ? docs
@@ -334,7 +343,7 @@ export async function getCompanyModel(viewer: Viewer, slug: string, dbArg?: Db) 
             .map((d) => ({
               id: d.id,
               title: d.title,
-              label: d.fileLabel,
+              label: "View only · watermarked",
               href: `/companies/${slug}/documents/${d.id}`,
             }))
         : [],

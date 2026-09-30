@@ -29,7 +29,7 @@ export function Figure({
         <div className="type-label text-ink-muted">{label}</div>
       )}
       <div className={cn("flex flex-col gap-1", verifiedHeader && "p-4 pt-2.5")}>
-        {value !== undefined && <div className="type-figure-lg">{value}</div>}
+        {value !== undefined && <div className="type-figure-lg whitespace-nowrap">{value}</div>}
         {caption && <div className="type-body-sm text-ink-muted">{caption}</div>}
       </div>
     </div>

@@ -9,8 +9,8 @@ async function persona(page: Page, role: "buyer_b" | "company_admin" | "operator
         role === "buyer_b"
           ? /Investor #B-117/
           : role === "company_admin"
-            ? /Falaj Robotics · CFO/
-            : /Atlas compliance/,
+            ? /Company · Falaj Robotics CFO/
+            : /Operator · Atlas Compliance/,
     })
     .click();
   await expect(page).toHaveURL(

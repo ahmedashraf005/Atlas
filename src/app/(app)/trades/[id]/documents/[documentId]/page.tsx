@@ -11,7 +11,15 @@ import {
 } from "@/components/ui/table";
 import { getTradeDocumentModel } from "@/server/read/trades";
 import { getViewer } from "@/server/viewer";
-export const metadata = { title: "Trade document" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string; documentId: string }>;
+}) {
+  const { id, documentId } = await params;
+  const document = await getTradeDocumentModel(await getViewer(), id, documentId);
+  return { title: { absolute: document ? `${document.title} · Atlas` : "Document · Atlas" } };
+}
 export default async function Page({
   params,
 }: {

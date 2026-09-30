@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { StartTourButton, TourPanel } from "@/components/shell/tour-panel";
 import { Button } from "@/components/ui/button";
 import { getLandingModel } from "@/server/read/landing";
+import { hasTradeInProgress } from "@/server/read/tour";
 import { getViewer } from "@/server/viewer";
 export const metadata = { title: "Private shares, settled properly" };
 export default async function Landing() {
@@ -81,7 +82,7 @@ export default async function Landing() {
           </span>
         </footer>
       </div>
-      <TourPanel persona={viewer.persona} />
+      <TourPanel persona={viewer.persona} hasTradeInProgress={await hasTradeInProgress(viewer)} />
     </main>
   );
 }

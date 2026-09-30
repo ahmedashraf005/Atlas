@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 
 export function NavLink({ href, label, icon }: { href: string; label: string; icon: ReactNode }) {
   const pathname = usePathname();
-  const active = pathname === href || pathname.startsWith(`${href}/`);
+  const active =
+    pathname === href || (!["/ops", "/company"].includes(href) && pathname.startsWith(`${href}/`));
   return (
     <Link
       href={href}

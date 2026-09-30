@@ -38,11 +38,11 @@ test("persona switching changes home, viewer card and role navigation", async ({
   await expect(nav.getByText("Holder #S-214", { exact: true })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Holdings", exact: true })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Trades", exact: true })).toBeVisible();
-  await switchTo(page, "Operator · Atlas compliance");
+  await switchTo(page, "Operator · Atlas Compliance");
   await expect(page).toHaveURL("/ops");
   await expect(nav.getByRole("link", { name: "Console", exact: true })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Audit log", exact: true })).toBeVisible();
-  await switchTo(page, "Company admin · Falaj Robotics");
+  await switchTo(page, "Company · Falaj Robotics CFO");
   await expect(page).toHaveURL("/company");
 });
 test("+1, +7 and +30 days advance sandbox time exactly", async ({ page }) => {

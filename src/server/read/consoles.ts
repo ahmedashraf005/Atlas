@@ -4,9 +4,11 @@ import { tradeMachine } from "@/domain/machines";
 import { evaluateBuyer, evaluateListing } from "@/domain/policy";
 import { describeAction, describeActor } from "@/lib/audit-display";
 import { formatDate, formatDateTime, formatMoney, formatShares } from "@/lib/format";
+import { plural } from "@/lib/plural";
 import { INVESTOR_LABELS } from "@/lib/policy-display";
 import { mentionsPaymentChange, tradeBadge } from "@/lib/trade-display";
 import { type Db, getDb } from "@/server/db/client";
+import * as bids from "@/server/repositories/bids";
 import * as companies from "@/server/repositories/companies";
 import * as consoles from "@/server/repositories/consoles";
 import * as discovery from "@/server/repositories/discovery";
@@ -42,6 +44,36 @@ export async function entityLinks(db: Db, viewer: Viewer) {
           : `/companies/${cs.find((c) => c.id === l.companyId)?.slug}`,
     });
   for (const t of ts) map.set(t.id, { label: t.ref, href: `/trades/${t.id}` });
+  const [hs, bs, qs, gs] = await Promise.all([
+    holdings.list(db, viewer.sandboxId),
+    bids.list(db, viewer.sandboxId),
+    qa.list(db, viewer.sandboxId),
+    grants.list(db, viewer.sandboxId),
+  ]);
+  for (const h of hs) {
+    const company = cs.find((c) => c.id === h.companyId);
+    map.set(h.id, {
+      label: `${company?.name ?? "Company"} holding`,
+      href:
+        viewer.actor.role === "seller"
+          ? `/holdings/${h.id}`
+          : `/companies/${company?.slug ?? "falaj-robotics"}`,
+    });
+  }
+  for (const b of bs) {
+    const listing = ls.find((l) => l.id === b.listingId);
+    if (listing) map.set(b.id, { label: `Bid on ${listing.ref}`, href: `/listings/${listing.id}` });
+  }
+  for (const q of qs) {
+    const company = cs.find((c) => c.id === q.companyId);
+    if (company)
+      map.set(q.id, { label: `${company.name} question`, href: `/companies/${company.slug}` });
+  }
+  for (const g of gs) {
+    const company = cs.find((c) => c.id === g.companyId);
+    if (company)
+      map.set(g.id, { label: `${company.name} access`, href: `/companies/${company.slug}` });
+  }
   return map;
 }
 export async function activityModel(
@@ -236,7 +268,7 @@ export async function getCompanyConsoleModel(viewer: Viewer, database?: Db) {
       {
         label: "Traded on Atlas (180 days)",
         value: formatMoney(traded, company.currency),
-        caption: `${recentPrints.length} trades`,
+        caption: plural(recentPrints.length, "trade"),
       },
     ],
     decisions: decisions.map((d) => d.item),

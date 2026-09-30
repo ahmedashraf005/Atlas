@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { tamper, verify } from "@/app/_actions/audit";
@@ -20,8 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 export function VerifyControl() {
-  const [pending, start] = useTransition(),
-    [message, setMessage] = useState("");
+  const [pending, start] = useTransition();
+  const router = useRouter();
   return (
     <div className="flex flex-wrap items-center gap-3">
       <Button
@@ -35,17 +36,14 @@ export function VerifyControl() {
                 : result.status === "error"
                   ? result.error.message
                   : "";
-            setMessage(text);
             if (result.status === "success" && result.data.verified) toast.success(text);
             else toast.error(text);
+            router.refresh();
           })
         }
       >
         Verify chain
       </Button>
-      <span aria-live="polite" className="type-body-sm">
-        {message}
-      </span>
     </div>
   );
 }
@@ -53,6 +51,7 @@ export function TamperControl() {
   const [pending, start] = useTransition(),
     [open, setOpen] = useState(false),
     cancel = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
   return (
     <>
       <DropdownMenu>
@@ -94,6 +93,7 @@ export function TamperControl() {
                   const result = await tamper({ status: "idle" }, {});
                   if (result.status === "success") toast.info(result.data.message);
                   else if (result.status === "error") toast.error(result.error.message);
+                  router.refresh();
                 })
               }
             >

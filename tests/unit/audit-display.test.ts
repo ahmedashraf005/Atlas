@@ -1,7 +1,13 @@
 import { globSync, readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 import { MACHINES } from "@/domain/machines";
-import { ACTION_LABELS, describeAction, describeActor, diffSnapshot } from "@/lib/audit-display";
+import {
+  ACTION_LABELS,
+  describeAction,
+  describeActor,
+  diffSnapshot,
+  displayAuditValue,
+} from "@/lib/audit-display";
 import { INVESTOR_LABELS, VISIBILITY_LABELS } from "@/lib/policy-display";
 
 it("labels every machine event and every non-transition audit action in the server", () => {
@@ -42,6 +48,17 @@ it("describes human, simulated, missing and system actors", () => {
   );
   expect(describeActor({ ...entry, actorId: "missing" }, users)).toBe("Unknown actor");
   expect(describeActor({ ...entry, actorRole: "system" }, users)).toBe("Atlas (deadline)");
+  expect(describeActor({ ...entry, action: "sandbox.switchPersona" }, users)).toBe("Demo visitor");
+  expect(describeActor({ ...entry, action: "sandbox.reset", actorId: "missing" }, users)).toBe(
+    "Demo visitor",
+  );
+  expect(describeActor({ ...entry, action: "sandbox.seed", actorRole: "system" }, users)).toBe(
+    "Atlas",
+  );
+});
+it("formats expanded audit timestamps in GST", () => {
+  expect(displayAuditValue('"2026-09-28T10:00:00.000Z"')).toBe("28 Sep 2026, 14:00 GST");
+  expect(displayAuditValue('"Verified"')).toBe('"Verified"');
 });
 it("diffs canonical top-level snapshots and ignores version", () => {
   expect(

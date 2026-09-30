@@ -56,7 +56,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Aud
             <option value="">All entities</option>
             {["holding", "listing", "bid", "trade", "company", "sandbox"].map((v) => (
               <option key={v} value={v}>
-                {v}
+                {v.charAt(0).toUpperCase() + v.slice(1)}
               </option>
             ))}
           </select>
@@ -70,7 +70,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Aud
           <Link href="/ops/audit">Clear</Link>
         </Button>
       </form>
-      <SectionCard title="Entries" aside={`Page ${model.page} of ${model.pages}`} flush>
+      <SectionCard
+        title="Entries"
+        aside={`${model.count} entries · Page ${model.page} of ${model.pages}`}
+        flush
+      >
         {model.entries.length ? (
           <Table>
             <TableHeader>

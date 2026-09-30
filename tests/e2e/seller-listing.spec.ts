@@ -33,7 +33,7 @@ test("seller holdings show eligibility, policy reasons and demand", async ({ pag
     card(page, "Wadi Ledger").getByText("2 buyers have mandates matching Wadi Ledger"),
   ).toBeVisible();
   await expect(
-    card(page, "Qamra Health").getByText("1 buyer has mandates matching Qamra Health"),
+    card(page, "Qamra Health").getByText("1 buyer has a mandate matching Qamra Health"),
   ).toBeVisible();
   await expect(page.locator("#your-listings tbody tr")).toHaveCount(1);
   await expect(page.locator("#your-listings").getByText("AED 34.00")).toBeVisible();
@@ -94,7 +94,7 @@ test("creates a listing through review, auto-approval and confirmed withdrawal",
   await expect(row.getByText("Withdrawn", { exact: true })).toBeVisible();
   const available = card(page, "Wadi Ledger")
     .locator("dl > div")
-    .filter({ has: page.getByText("Available", { exact: true }) });
+    .filter({ has: page.getByText("Not listed", { exact: true }) });
   await expect(available).toContainText("10,000 sh");
 });
 test("client validation blocks malformed reserve", async ({ page }) => {
@@ -102,9 +102,9 @@ test("client validation blocks malformed reserve", async ({ page }) => {
   await wadiForm(page);
   await page.getByLabel("Reserve price per share").fill("abc");
   await page.getByRole("button", { name: "Review listing", exact: true }).click();
-  await expect(page.getByRole("alert").filter({ hasText: "Enter a positive price" })).toContainText(
-    "Enter a positive price",
-  );
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Enter an amount like 3.00" }),
+  ).toContainText("Enter an amount like 3.00 (up to two decimal places).");
   await expect(page.getByRole("heading", { name: "Listing details", exact: true })).toBeVisible();
   await expect(page.getByText("At your reserve: —")).toBeVisible();
 });

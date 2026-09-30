@@ -126,8 +126,8 @@ it("shows exact seller holdings, eligibility, reference prices and owned listing
     "Lock-up ends 30 Dec 2026.",
     "Sales are paused until 8 Oct 2026 (Series B fundraising).",
   ]);
-  expect(m.cards[2]?.market?.reference).toBe("Estimate AED 18.50 from the last round");
-  expect(m.cards[2]?.market?.demand).toBe("1 buyer has mandates matching Qamra Health");
+  expect(m.cards[2]?.market?.reference).toBe("Round-implied AED 18.50");
+  expect(m.cards[2]?.market?.demand).toBe("1 buyer has a mandate matching Qamra Health");
   expect(m.listings[0]).toMatchObject({
     ref: "L-2031",
     reserve: "AED 34.00",
@@ -143,7 +143,7 @@ it("uses shared price visibility for shareholders and hides operator-only prints
     .set({ priceVisibility: "operator" })
     .where(and(eq(transferPolicies.sandboxId, sid), eq(transferPolicies.companyId, c.id)));
   const m = await getHoldingsModel(await viewer(), db);
-  expect(m.cards[0]?.market?.reference).toBe("Estimate AED 42.00 from the last round");
+  expect(m.cards[0]?.market?.reference).toBe("Round-implied AED 42.00");
   expect(m.cards[0]?.market?.last).toBe("Not disclosed");
   const form = await getCreateListingModel(
     await viewer(),

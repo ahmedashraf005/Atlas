@@ -1,4 +1,5 @@
 import type { AuditEntry, Json } from "@/domain/audit";
+import { formatDateTime } from "@/lib/format";
 
 export const ACTION_LABELS: Record<string, string> = {
   "notifications.markRead": "Notification read",
@@ -100,9 +101,11 @@ export function describeAction(action: string): string {
   return `${entity.charAt(0).toUpperCase()}${entity.slice(1)} · ${words.charAt(0).toUpperCase()}${words.slice(1)}`;
 }
 export function describeActor(
-  entry: Pick<AuditEntry, "actorId" | "actorRole" | "simulated">,
+  entry: Pick<AuditEntry, "actorId" | "actorRole" | "simulated"> & { action?: string },
   users: readonly { id: string; displayName: string; handle: string }[],
 ): string {
+  if (entry.action === "sandbox.seed") return "Atlas";
+  if (entry.action?.startsWith("sandbox.")) return "Demo visitor";
   if (entry.actorRole === "system") return "Atlas (deadline)";
   const user = users.find((u) => u.id === entry.actorId);
   return `${user ? `${user.displayName} · ${user.handle}` : "Unknown actor"}${entry.simulated ? " (auto-pilot)" : ""}`;
@@ -121,4 +124,11 @@ export function diffSnapshot(
       to = JSON.stringify(b[field]);
     return field === "version" || from === to ? [] : [{ field, from: from ?? "—", to: to ?? "—" }];
   });
+}
+
+export function displayAuditValue(value: string): string {
+  const unquoted = value.startsWith('"') && value.endsWith('"') ? value.slice(1, -1) : value;
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(unquoted)
+    ? formatDateTime(new Date(unquoted))
+    : value;
 }

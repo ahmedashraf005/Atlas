@@ -178,11 +178,13 @@ async function timeline(
       : null;
   step("rofr", "Right of first refusal", rofrDone, [rofrDetail]);
   step("funds", "Funds in escrow", !!trade.fundedAt, [
-    recorded(
-      "CONFIRM_FUNDS",
-      trade.fundedAt,
-      display(allUsers.find((u) => u.role === "operator" && u.simulatedOnly)?.id ?? "system"),
-    ),
+    entryFor("CONFIRM_FUNDS")?.simulated
+      ? `Escrow agent (auto-pilot) · ${formatDateTime(entryFor("CONFIRM_FUNDS")?.at ?? trade.fundedAt ?? viewer.now)}`
+      : recorded(
+          "CONFIRM_FUNDS",
+          trade.fundedAt,
+          display(allUsers.find((u) => u.role === "operator" && u.simulatedOnly)?.id ?? "system"),
+        ),
   ]);
   step("register", "Register updated", !!trade.registerUpdatedAt, [
     recorded(
@@ -232,7 +234,7 @@ async function timeline(
     });
     return kept;
   }
-  const current = steps.find((s) => s.state !== "done");
+  const current = completed(trade) ? null : steps.find((s) => s.state !== "done");
   if (current) {
     current.state = "current";
     current.tone = yourMove(viewer.actor, trade, facts.companyOrgId) ? "warning" : "info";
@@ -262,6 +264,7 @@ export async function getTradeRoomModel(viewer: Viewer, id: string, database?: D
     id: d.id,
     title: documentTitles[d.kind] ?? d.title,
     kind: d.kind,
+    label: "View only · watermarked",
     href: `/trades/${id}/documents/${d.id}`,
   }));
   const facts = {
@@ -299,6 +302,7 @@ export async function getTradeRoomModel(viewer: Viewer, id: string, database?: D
           : sum,
     0n,
   );
+  const released = events.findLast((e) => e.kind === "released");
   return {
     id,
     ref: row.ref,
@@ -345,7 +349,12 @@ export async function getTradeRoomModel(viewer: Viewer, id: string, database?: D
             : `${({ funded: "Funds received", released: "Released to seller", refunded: "Refunded to buyer" } as const)[e.kind]} ${formatMoney(e.amountMinor, e.currency)}`,
         at: formatDateTime(e.at),
       })),
-      held: held > 0n ? `Held in escrow: ${formatMoney(held, row.currency)}` : "Nothing held yet.",
+      held:
+        held > 0n
+          ? `Held in escrow: ${formatMoney(held, row.currency)}`
+          : released
+            ? `Released to seller ${formatMoney(released.amountMinor, released.currency)} on ${formatDateTime(released.at)}`
+            : "Nothing held yet.",
     },
     documents: docs,
     messages: thread,

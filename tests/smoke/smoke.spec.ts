@@ -58,7 +58,7 @@ test("post-deploy read-mostly product and security smoke", async ({ page }) => {
     .click();
   await expect(page.getByRole("heading", { name: "Place a bid", exact: true })).toBeVisible();
   await page.getByRole("combobox", { name: "View as" }).click();
-  await page.getByRole("option", { name: "Operator · Atlas compliance", exact: true }).click();
+  await page.getByRole("option", { name: "Operator · Atlas Compliance", exact: true }).click();
   await expect(page).toHaveURL("/ops");
   await page.goto("/ops/audit");
   await page.getByRole("button", { name: "Verify chain", exact: true }).click();

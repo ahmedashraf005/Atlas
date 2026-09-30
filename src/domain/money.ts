@@ -38,7 +38,7 @@ function parse(input: string, money: boolean): Result<bigint> {
         {
           field,
           message: money
-            ? "Enter a positive price with at most 15 integer digits and two decimal places."
+            ? "Enter an amount like 3.00 (up to two decimal places)."
             : "Enter a positive whole share quantity with at most 15 digits.",
         },
       ]),
@@ -47,7 +47,16 @@ function parse(input: string, money: boolean): Result<bigint> {
     BigInt(whole) * (money ? 100n : 1n) + (money ? BigInt(decimals.padEnd(2, "0")) : 0n);
   return amount > 0n
     ? ok(amount)
-    : err(validation([{ field, message: "The value must be greater than zero." }]));
+    : err(
+        validation([
+          {
+            field,
+            message: money
+              ? "Enter an amount like 3.00 (up to two decimal places)."
+              : "The value must be greater than zero.",
+          },
+        ]),
+      );
 }
 export const parseMoneyInput = (input: string): Result<bigint> => parse(input, true);
 export const parseSharesInput = (input: string): Result<bigint> => parse(input, false);

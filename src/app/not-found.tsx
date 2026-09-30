@@ -7,6 +7,10 @@ export default function NotFound() {
       <div className="flex max-w-md flex-col gap-4 rounded-md border border-line bg-surface p-8">
         <h1 className="type-heading-1">Page not found</h1>
         <p className="text-ink-muted">This page doesn't exist in the demo.</p>
+        <p className="text-ink-muted">
+          Listings, trades and documents belong to each visitor's private demo sandbox, so links to
+          them don't carry over between visitors.
+        </p>
         <Button variant="link" asChild>
           <Link href="/">Back to the start</Link>
         </Button>

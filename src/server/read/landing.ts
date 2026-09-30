@@ -4,23 +4,23 @@ import type { Viewer } from "@/server/viewer";
 
 const copy = {
   buyer_a: {
-    title: "Investor #B-081 · Palmgate Family Office",
+    title: "Buyer A · Investor #B-081 · Palmgate Family Office",
     description: "Browse companies, bid on listings and respond to a seller's counter.",
   },
   buyer_b: {
-    title: "Investor #B-117 · individual investor",
+    title: "Buyer B · Investor #B-117 · Individual investor",
     description: "Has a trade waiting on the company's right of first refusal.",
   },
   seller: {
-    title: "Holder #S-214",
+    title: "Seller · Holder #S-214",
     description: "List shares, review sealed bids, counter and accept.",
   },
   company_admin: {
-    title: "Falaj Robotics · CFO",
+    title: "Company · Falaj Robotics CFO",
     description: "Verify holdings, approve buyer access and decide on the right of first refusal.",
   },
   operator: {
-    title: "Atlas compliance",
+    title: "Operator · Atlas Compliance",
     description: "Review listings, release escrow with a second approver and verify the audit log.",
   },
 };

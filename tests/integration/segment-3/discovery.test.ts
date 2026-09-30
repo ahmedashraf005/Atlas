@@ -91,7 +91,15 @@ it("computes discover filters and fallback", async () => {
   const v = await viewer("buyer_a"),
     all = await getDiscoverModel(v, {}, db);
   expect(all.companies).toHaveLength(3);
-  expect(all.companies.find((c) => c.slug === "qamra-health")?.fairValue).toBe("AED 18.50 est.");
+  expect(all.companies.find((c) => c.slug === "qamra-health")?.fairValue).toBe(
+    "Round-implied AED 18.50",
+  );
+  const qamra = await getCompanyModel(v, "qamra-health", db);
+  expect(qamra?.stats.band.caption).toBe(
+    "Value per share if the company sold at its last round's valuation. Ordinary shares usually trade at a discount to this.",
+  );
+  expect(qamra?.chart.points).toHaveLength(0);
+  expect(qamra?.chart.hidden).toBe(false);
   expect(all.companies.find((c) => c.slug === "wadi-ledger")?.fairValue).toBe("USD 2.95–3.30");
   expect((await getDiscoverModel(v, { open: "on" }, db)).companies.map((c) => c.slug)).toEqual([
     "falaj-robotics",
@@ -164,6 +172,13 @@ it("requests access, then simulated company decides Wadi and Qamra", async () =>
   vi.spyOn(systemClock, "now").mockImplementation(() => new Date(T0.getTime() + 4000));
   await refreshSandbox(db, sid);
   expect((await grants.find(db, sid, wadi.id, b.id))?.status).toBe("denied");
+  const denied = await getCompanyModel(await viewer("buyer_b"), "wadi-ledger", db);
+  expect(denied?.requestAccess).toBe(false);
+  expect(denied?.matchingMandate).toBeNull();
+  expect(denied?.info.denial).toBe("Wadi Ledger accepts only Family offices, Funds.");
+  expect(
+    (await getDiscoverModel(await viewer("buyer_b"), { matches: "on" }, db)).companies,
+  ).toHaveLength(0);
   const second = await executeAction(
     requestAccessDef,
     { companyId: qamra.id, ndaVersion: "v1", accepted: true },
