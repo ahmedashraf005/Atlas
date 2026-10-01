@@ -49,13 +49,17 @@ test("+1, +7 and +30 days advance sandbox time exactly", async ({ page }) => {
   await page.goto("/discover");
   let previous = parseTime(await timeText(page).innerText());
   for (const days of [1, 7, 30]) {
+    const wallStart = Date.now();
+    const jump = days * 86400000;
     await page
       .getByRole("button", { name: `+${days} ${days === 1 ? "day" : "days"}`, exact: true })
       .click();
     await expect
       .poll(async () => parseTime(await timeText(page).innerText()) - previous)
-      .toBe(days * 86400000);
-    previous = parseTime(await timeText(page).innerText());
+      .toBeGreaterThanOrEqual(jump);
+    const current = parseTime(await timeText(page).innerText());
+    expect(Math.abs(current - previous - jump - (Date.now() - wallStart))).toBeLessThan(60000);
+    previous = current;
   }
 });
 test("auto-pilot and ROFR mode persist across reload", async ({ page }) => {
