@@ -162,9 +162,14 @@ export function DemoControls({
         >
           <SelectTrigger
             id="persona"
-            className="h-8 w-[220px] min-w-[220px] shrink-0 whitespace-nowrap"
+            title={PERSONAS.find((p) => p.key === persona)?.label}
+            className="h-8 w-[220px] min-w-0 shrink-0"
           >
-            <SelectValue />
+            <SelectValue className="min-w-0 flex-1">
+              <span className="block min-w-0 truncate text-left">
+                {PERSONAS.find((p) => p.key === persona)?.label}
+              </span>
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {PERSONAS.map((p) => (

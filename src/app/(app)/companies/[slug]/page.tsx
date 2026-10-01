@@ -31,6 +31,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     { slug } = await params,
     model = await getCompanyModel(viewer, slug);
   if (!model) notFound();
+  const [bandLow, bandHigh] = model.stats.band.value.split("–");
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
@@ -69,7 +70,17 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <Figure
           label="Fair-value band"
           verifiedHeader={model.stats.band.label}
-          value={model.stats.band.value}
+          wrapValue
+          value={
+            bandHigh ? (
+              <>
+                {bandLow}–<wbr />
+                {bandHigh}
+              </>
+            ) : (
+              model.stats.band.value
+            )
+          }
           caption={model.stats.band.caption}
         />
         <Figure
@@ -247,11 +258,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
                   <Link
                     key={d.id}
                     href={d.href}
-                    className="flex items-center gap-2 rounded-md border border-line p-3 hover:bg-surface-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                    className="flex items-start gap-2 rounded-md border border-line p-3 hover:bg-surface-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                   >
-                    <FileText size={18} strokeWidth={1.5} />
-                    <span className="min-w-0 flex-1 whitespace-normal break-normal">{d.title}</span>
-                    <span className="type-body-sm text-ink-muted">{d.label}</span>
+                    <FileText size={18} strokeWidth={1.5} className="shrink-0" />
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="whitespace-normal break-normal">{d.title}</span>
+                      <span className="type-body-sm text-ink-muted">{d.label}</span>
+                    </span>
                   </Link>
                 ))
               ) : (

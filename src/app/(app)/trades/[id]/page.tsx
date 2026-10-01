@@ -119,8 +119,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   className="shrink-0 text-ink-muted"
                   aria-hidden
                 />
-                <span className="min-w-0 flex-1 whitespace-normal">{d.title}</span>
-                <span className="type-body-sm text-ink-muted whitespace-nowrap">{d.label}</span>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="whitespace-normal">{d.title}</span>
+                  <span className="type-body-sm text-ink-muted">{d.label}</span>
+                </span>
               </Link>
             ))}
           </SectionCard>

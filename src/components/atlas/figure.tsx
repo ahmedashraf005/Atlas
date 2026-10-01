@@ -7,11 +7,13 @@ export function Figure({
   value,
   caption,
   verifiedHeader,
+  wrapValue = false,
 }: {
   label: string;
   value?: ReactNode;
   caption?: ReactNode;
   verifiedHeader?: string;
+  wrapValue?: boolean;
 }) {
   return (
     <div
@@ -29,7 +31,13 @@ export function Figure({
         <div className="type-label text-ink-muted">{label}</div>
       )}
       <div className={cn("flex flex-col gap-1", verifiedHeader && "p-4 pt-2.5")}>
-        {value !== undefined && <div className="type-figure-lg whitespace-nowrap">{value}</div>}
+        {value !== undefined && (
+          <div
+            className={cn("type-figure-lg", wrapValue ? "whitespace-normal" : "whitespace-nowrap")}
+          >
+            {value}
+          </div>
+        )}
         {caption && <div className="type-body-sm text-ink-muted">{caption}</div>}
       </div>
     </div>
