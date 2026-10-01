@@ -41,7 +41,7 @@ export default async function Page({
           </p>
         }
       />
-      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid min-w-0 gap-4 min-[2048px]:grid-cols-[minmax(0,3fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-4">
           <form
             key={JSON.stringify(model.filters)}
@@ -121,8 +121,8 @@ export default async function Page({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Company</TableHead>
-                    <TableHead className="hidden xl:table-cell">Last round</TableHead>
-                    <TableHead className="hidden xl:table-cell">Round price</TableHead>
+                    <TableHead className="hidden min-[1440px]:table-cell">Last round</TableHead>
+                    <TableHead className="hidden min-[1440px]:table-cell">Round price</TableHead>
                     <TableHead>Fair value (ordinary)</TableHead>
                     <TableHead>Open listings</TableHead>
                     <TableHead>Mandates</TableHead>
@@ -142,12 +142,14 @@ export default async function Page({
                         <div className="type-body-sm text-ink-muted">
                           {c.sector} · {c.stage}
                         </div>
-                        <div className="type-body-sm text-ink-muted xl:hidden">
+                        <div className="type-body-sm text-ink-muted min-[1440px]:hidden">
                           {c.lastRound} · {c.roundPrice}
                         </div>
                       </TableCell>
-                      <TableCell className="hidden xl:table-cell">{c.lastRound}</TableCell>
-                      <TableCell className="hidden text-right type-figure xl:table-cell">
+                      <TableCell className="hidden min-[1440px]:table-cell">
+                        {c.lastRound}
+                      </TableCell>
+                      <TableCell className="hidden text-right type-figure min-[1440px]:table-cell">
                         {c.roundPrice}
                       </TableCell>
                       <TableCell className="text-right whitespace-nowrap">{c.fairValue}</TableCell>

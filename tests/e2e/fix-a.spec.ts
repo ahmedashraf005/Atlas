@@ -38,7 +38,7 @@ for (const width of [1054, 1280])
     await expect(page.getByRole("button", { name: "Reset", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Auto-pilot on", exact: true })).toBeVisible();
     const before = sandboxTime((await page.getByText(/^Sandbox time /).textContent()) ?? "");
-    if (width === 1054) {
+    if (width < 1440) {
       await page.getByRole("button", { name: "Time", exact: true }).click();
       await page.getByRole("menuitem", { name: "+7 days" }).click();
     } else await page.getByRole("button", { name: "+7 days", exact: true }).click();

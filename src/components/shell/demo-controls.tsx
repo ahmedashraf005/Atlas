@@ -165,8 +165,8 @@ export function DemoControls({
             title={PERSONAS.find((p) => p.key === persona)?.label}
             className="h-8 w-[220px] min-w-0 shrink-0"
           >
-            <SelectValue className="min-w-0 flex-1">
-              <span className="block min-w-0 truncate text-left">
+            <SelectValue className="min-w-0 flex-1 overflow-hidden">
+              <span className="line-clamp-1 min-w-0 text-left">
                 {PERSONAS.find((p) => p.key === persona)?.label}
               </span>
             </SelectValue>
@@ -181,7 +181,12 @@ export function DemoControls({
         </Select>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="sm" className="shrink-0 xl:hidden" disabled={busy}>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="shrink-0 min-[1440px]:hidden"
+              disabled={busy}
+            >
               <FastForward size={16} strokeWidth={1.5} aria-hidden /> Time
             </Button>
           </DropdownMenuTrigger>
@@ -200,7 +205,7 @@ export function DemoControls({
         {([24, 168, 720] as const).map((hours) => (
           <Button
             key={hours}
-            className="hidden shrink-0 xl:inline-flex"
+            className="hidden shrink-0 min-[1440px]:inline-flex"
             variant="secondary"
             size="sm"
             disabled={busy}
